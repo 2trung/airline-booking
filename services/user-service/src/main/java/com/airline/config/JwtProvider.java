@@ -16,7 +16,7 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class JwtProvider {
-    public static final String SECRET_KEY = "supersecretkey";
+    public static final String SECRET_KEY = "supersecretkey1234567890supersecret";
     public static final String TOKEN_PREFIX = "Bearer ";
     private final SecretKey secretKey = Keys.hmacShaKeyFor(
             SECRET_KEY.getBytes()

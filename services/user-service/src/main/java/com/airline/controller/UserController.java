@@ -32,7 +32,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+    public ResponseEntity<?> getUserById(@PathVariable("id") Long id) {
         try {
             User user = userService.getUserById(id);
             return ResponseEntity.ok(UserMapper.toUserResponse(user));
@@ -42,7 +42,7 @@ public class UserController {
     }
 
     @GetMapping("/by-email")
-    public ResponseEntity<?> getUserByEmail(@RequestParam String email) {
+    public ResponseEntity<?> getUserByEmail(@RequestParam("email") String email) {
         try {
             User user = userService.getUserByEmail(email);
             return ResponseEntity.ok(UserMapper.toUserResponse(user));
@@ -53,10 +53,10 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<Page<UserResponse>> getAllUsers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "sortBy", defaultValue = "id") String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "asc") String sortDir
     ) {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
         Page<UserResponse> userResponses = userService
@@ -65,4 +65,3 @@ public class UserController {
         return ResponseEntity.ok(userResponses);
     }
 }
-
