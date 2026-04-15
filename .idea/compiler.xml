@@ -9,6 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="location-service" />
         <module name="common-lib" />
+        <module name="user-service" />
       </profile>
     </annotationProcessing>
   </component>
