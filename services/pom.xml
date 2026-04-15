@@ -14,7 +14,7 @@
     <description>Aggregator for all business microservices (user, flight, booking, etc,.)</description>
 
     <modules>
-        <module>user-services</module>
+        <module>location-service</module>
     </modules>
 
 </project>
