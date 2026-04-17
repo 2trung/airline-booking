@@ -8,6 +8,7 @@ import com.airline.mapper.SeatMapMapper;
 import com.airline.repository.CabinClassRepository;
 import com.airline.repository.SeatMapRepository;
 import com.airline.service.SeatMapService;
+import com.airline.service.SeatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ public class SeatMapServiceImpl implements SeatMapService {
 
     private final SeatMapRepository seatMapRepository;
     private final CabinClassRepository cabinClassRepository;
+    private final SeatService seatService;
 
     @Override
     @Transactional
@@ -38,7 +40,7 @@ public class SeatMapServiceImpl implements SeatMapService {
         SeatMap seatMap = SeatMapMapper.toEntity(seatMapRequest, cabinClass);
         cabinClass.setSeatMap(seatMap);
 
-        // todo: generate seat map
+        seatService.generateSeats(seatMap.getId());
 
         SeatMap savedSeatMap = seatMapRepository.save(seatMap);
         log.info("Seat map created successfully with ID: {}", savedSeatMap.getId());
