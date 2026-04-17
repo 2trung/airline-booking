@@ -9,6 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="common-lib" />
         <module name="user-service" />
+        <module name="seat-service" />
         <module name="location-service" />
         <module name="core-service" />
         <module name="fly-ops-service" />
