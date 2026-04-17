@@ -19,6 +19,7 @@
         <module>core-service</module>
         <module>fly-ops-service</module>
         <module>seat-service</module>
+        <module>pricing-service</module>
     </modules>
 
 </project>
