@@ -15,7 +15,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/fares")
+@RequestMapping("/fares")
 @RequiredArgsConstructor
 public class FareController {
 
