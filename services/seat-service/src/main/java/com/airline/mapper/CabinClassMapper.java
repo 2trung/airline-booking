@@ -68,6 +68,7 @@ public class CabinClassMapper {
                 .seatType(cabinClass.getSeatType())
                 .createdAt(cabinClass.getCreatedAt())
                 .updatedAt(cabinClass.getUpdatedAt())
+                .seatMap(SeatMapMapper.toResponse(cabinClass.getSeatMap()))
                 .build();
     }
 

@@ -4,11 +4,43 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
+
+import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class SeatMapResponse {
-    private Long id;
+    Long id;
+
+    String name;
+
+    Integer totalRows;
+
+    Long airlineId;
+    String airlineName;
+    String airlineCode;
+
+    Long cabinClassId;
+    String cabinClassName;
+    String cabinClassCode;
+
+    Integer totalSeats;
+    Integer availableSeats;
+    Integer occupiedSeats;
+
+//    List<SeatResponse> seats;
+
+    Integer windowSeats;
+    Integer aisleSeats;
+    Integer middleSeats;
+    Integer premiumSeats;
+    Integer emergencySeats;
+    Integer emergencyExitSeats;
+
+    Integer leftSeatsPerRow;
+    Integer rightSeatsPerRow;
 }

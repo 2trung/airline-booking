@@ -28,8 +28,8 @@ public class CabinClass {
 
     private String description;
 
-//    @OneToOne()
-//    private SeatMap seatMap;
+    @OneToOne(mappedBy = "cabinClass", cascade = CascadeType.ALL, orphanRemoval = true)
+    private SeatMap seatMap;
 
     @Column(nullable = false)
     private Long airCraftId;
