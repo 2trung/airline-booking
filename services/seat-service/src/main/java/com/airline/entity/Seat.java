@@ -23,7 +23,6 @@ public class Seat {
     @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
-
     String seatNumber;
 
     Integer seatRow;
