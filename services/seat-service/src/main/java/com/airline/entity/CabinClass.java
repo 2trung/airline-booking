@@ -48,7 +48,7 @@ public class CabinClass {
     private String seatType;
 
     @CreatedDate
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
     @LastModifiedDate

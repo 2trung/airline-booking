@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,8 +30,8 @@ public class FlightInstanceCabin {
 
     Integer bookedSeats = 0;
 
-    //todo: do it later
-//    List<SeatInstance> seatInstances = new ArrayList<>();
+    @OneToMany(mappedBy = "flightInstanceCabin", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<SeatInstance> seatInstances = new ArrayList<>();
 
     public Integer getAvailableSeats() {
         return totalSeats - bookedSeats;

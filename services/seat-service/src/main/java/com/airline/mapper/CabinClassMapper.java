@@ -3,6 +3,7 @@ package com.airline.mapper;
 import com.airline.dto.request.CabinClassRequest;
 import com.airline.dto.response.CabinClassResponse;
 import com.airline.entity.CabinClass;
+import com.airline.entity.SeatMap;
 
 import java.time.Instant;
 
@@ -49,7 +50,7 @@ public class CabinClassMapper {
 
     }
 
-    public static CabinClassResponse toResponse(CabinClass cabinClass) {
+    public static CabinClassResponse toResponse(CabinClass cabinClass, SeatMap seatMap) {
         if (cabinClass == null) {
             return null;
         }
@@ -60,6 +61,7 @@ public class CabinClassMapper {
                 .code(cabinClass.getCode())
                 .description(cabinClass.getDescription())
                 .aircraftId(cabinClass.getAirCraftId())
+                .seatMap(SeatMapMapper.toResponse(seatMap))
                 .displayOrder(cabinClass.getDisplayOrder())
                 .isActive(cabinClass.getIsActive())
                 .isBookable(cabinClass.getIsBookable())

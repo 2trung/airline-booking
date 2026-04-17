@@ -3,7 +3,11 @@ package com.airline.mapper;
 import com.airline.dto.request.SeatMapRequest;
 import com.airline.dto.response.SeatMapResponse;
 import com.airline.entity.CabinClass;
+import com.airline.entity.Seat;
 import com.airline.entity.SeatMap;
+import com.airline.enums.SeatType;
+
+import java.util.List;
 
 public class SeatMapMapper {
 
@@ -43,9 +47,15 @@ public class SeatMapMapper {
         if (seatMap == null) {
             return null;
         }
+        List<Seat> seats = seatMap.getSeats();
+        int totalSeats = seats.size();
+        int availableSeats = seats.stream().filter(seat -> seat.getIsAvailable() && seat.getIsActive() && !seat.getIsBlocked()).toList().size();
+
+        int windowSeats = seats.stream().filter(seat -> seat.getSeatType() == SeatType.WINDOW).toList().size();
+        int aisleSeats = seats.stream().filter(seat -> seat.getSeatType() == SeatType.AISLE).toList().size();
+        int middleSeats = seats.stream().filter(seat -> seat.getSeatType() == SeatType.MIDDLE).toList().size();
 
         CabinClass cabinClass = seatMap.getCabinClass();
-        int totalSeats = calculateTotalSeats(seatMap);
 
         return SeatMapResponse.builder()
                 .id(seatMap.getId())
@@ -55,29 +65,18 @@ public class SeatMapMapper {
                 .cabinClassId(cabinClass != null ? cabinClass.getId() : null)
                 .cabinClassName(cabinClass != null && cabinClass.getName() != null ? cabinClass.getName().name() : null)
                 .cabinClassCode(cabinClass != null ? cabinClass.getCode() : null)
-                .totalSeats(totalSeats)
-                .availableSeats(totalSeats)
-                .occupiedSeats(0)
                 .leftSeatsPerRow(seatMap.getLeftSeatsPerRow())
                 .rightSeatsPerRow(seatMap.getRightSeatsPerRow())
+                .totalSeats(totalSeats)
+                .availableSeats(availableSeats)
+                .windowSeats(windowSeats)
+                .aisleSeats(aisleSeats)
+                .middleSeats(middleSeats)
                 .build();
-    }
-
-    private static int calculateTotalSeats(SeatMap seatMap) {
-        if (seatMap.getTotalRows() == null || seatMap.getLeftSeatsPerRow() == null || seatMap.getRightSeatsPerRow() == null) {
-            return 0;
-        }
-
-        return seatMap.getTotalRows() * (seatMap.getLeftSeatsPerRow() + seatMap.getRightSeatsPerRow());
     }
 
 
     public static SeatMapResponse toSimpleResponse(SeatMap seatMap) {
-        return SeatMapResponse.builder()
-                .id(seatMap.getId())
-                .totalRows(seatMap.getTotalRows())
-                .leftSeatsPerRow(seatMap.getLeftSeatsPerRow())
-                .rightSeatsPerRow(seatMap.getRightSeatsPerRow())
-                .build();
+        return SeatMapResponse.builder().id(seatMap.getId()).totalRows(seatMap.getTotalRows()).leftSeatsPerRow(seatMap.getLeftSeatsPerRow()).rightSeatsPerRow(seatMap.getRightSeatsPerRow()).build();
     }
 }
