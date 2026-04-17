@@ -57,4 +57,7 @@ public class FareRequest {
 
     Boolean loungeAccess;
     Boolean airportTransfer;
+
+    FareRulesRequest fareRules;
+    BaggagePolicyRequest baggagePolicy;
 }

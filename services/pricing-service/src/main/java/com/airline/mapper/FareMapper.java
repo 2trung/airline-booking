@@ -4,10 +4,15 @@ import com.airline.dto.request.FareRequest;
 import com.airline.dto.response.FareResponse;
 import com.airline.embeddable.*;
 import com.airline.entity.Fare;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class FareMapper {
+    private final FareRulesMapper fareRulesMapper;
+    private final BaggagePolicyMapper baggagePolicyMapper;
+
 
     public Fare toEntity(FareRequest request) {
         if (request == null) {
@@ -22,13 +27,37 @@ public class FareMapper {
             return null;
         }
 
-        return FareResponse.builder().id(fare.getId()).name(fare.getName()).rbdCode(fare.getRbdCode()).flightId(fare.getFlightId()).cabinClassId(fare.getCabinClassId()).cabinClassType(fare.getCabinClassType()).baseFare(fare.getBaseFare()).taxesAndFees(fare.getTaxesAndFees()).airlineFees(fare.getAirlineFees()).totalPrice(fare.getTotalPrice()).fareLabel(fare.getFareLabel())
-                //todo: watch fare rule
-//                .fareRulesId()
-                .extraSeatSpace(fare.getSeatBenefits() != null ? fare.getSeatBenefits().getExtraSeatSpace() : null).preferredSeatChoice(fare.getSeatBenefits() != null ? fare.getSeatBenefits().getPreferredSeatChoice() : null).advanceSeatSelection(fare.getSeatBenefits() != null ? fare.getSeatBenefits().getAdvanceSeatSelection() : null).guaranteedSeatTogether(fare.getSeatBenefits() != null ? fare.getSeatBenefits().getGuaranteedSeatTogether() : null).priorityBoarding(fare.getBoardingBenefits() != null ? fare.getBoardingBenefits().getPriorityBoarding() : null).priorityCheckIn(fare.getBoardingBenefits() != null ? fare.getBoardingBenefits().getPriorityCheckIn() : null).prioritySecurity(fare.getBoardingBenefits() != null ? fare.getBoardingBenefits().getPrioritySecurity() : null).complimentaryMeals(fare.getInFlightBenefits() != null ? fare.getInFlightBenefits().getComplimentaryMeals() : null).premiumMealChoice(fare.getInFlightBenefits() != null ? fare.getInFlightBenefits().getPremiumMealChoice() : null).inFlightInternet(fare.getInFlightBenefits() != null ? fare.getInFlightBenefits().getInFlightInternet() : null).inFlightEntertainment(fare.getInFlightBenefits() != null ? fare.getInFlightBenefits().getInFlightEntertainment() : null).complimentaryBeverages(fare.getInFlightBenefits() != null ? fare.getInFlightBenefits().getComplimentaryBeverages() : null).freeDateChange(fare.getFlexibilityBenefits() != null ? fare.getFlexibilityBenefits().getFreeDateChange() : null).partialRefund(fare.getFlexibilityBenefits() != null ? fare.getFlexibilityBenefits().getPartialRefund() : null).fullRefund(fare.getFlexibilityBenefits() != null ? fare.getFlexibilityBenefits().getFullRefund() : null).loungeAccess(fare.getPremiumServiceBenefits() != null ? fare.getPremiumServiceBenefits().getLoungeAccess() : null).airportTransfer(fare.getPremiumServiceBenefits() != null ? fare.getPremiumServiceBenefits().getAirportTransfer() : null)
-//              // todo: watch fare rule, bagge policy
-//                .fareRules()
-//                .baggagePolicy()
+        return FareResponse.builder()
+                .id(fare.getId())
+                .name(fare.getName())
+                .rbdCode(fare.getRbdCode())
+                .flightId(fare.getFlightId())
+                .cabinClassId(fare.getCabinClassId())
+                .cabinClassType(fare.getCabinClassType())
+                .baseFare(fare.getBaseFare())
+                .taxesAndFees(fare.getTaxesAndFees())
+                .airlineFees(fare.getAirlineFees())
+                .totalPrice(fare.getTotalPrice())
+                .fareLabel(fare.getFareLabel())
+                .extraSeatSpace(fare.getSeatBenefits() != null ? fare.getSeatBenefits().getExtraSeatSpace() : null)
+                .preferredSeatChoice(fare.getSeatBenefits() != null ? fare.getSeatBenefits().getPreferredSeatChoice() : null)
+                .advanceSeatSelection(fare.getSeatBenefits() != null ? fare.getSeatBenefits().getAdvanceSeatSelection() : null)
+                .guaranteedSeatTogether(fare.getSeatBenefits() != null ? fare.getSeatBenefits().getGuaranteedSeatTogether() : null)
+                .priorityBoarding(fare.getBoardingBenefits() != null ? fare.getBoardingBenefits().getPriorityBoarding() : null)
+                .priorityCheckIn(fare.getBoardingBenefits() != null ? fare.getBoardingBenefits().getPriorityCheckIn() : null)
+                .prioritySecurity(fare.getBoardingBenefits() != null ? fare.getBoardingBenefits().getPrioritySecurity() : null)
+                .complimentaryMeals(fare.getInFlightBenefits() != null ? fare.getInFlightBenefits().getComplimentaryMeals() : null)
+                .premiumMealChoice(fare.getInFlightBenefits() != null ? fare.getInFlightBenefits().getPremiumMealChoice() : null)
+                .inFlightInternet(fare.getInFlightBenefits() != null ? fare.getInFlightBenefits().getInFlightInternet() : null)
+                .inFlightEntertainment(fare.getInFlightBenefits() != null ? fare.getInFlightBenefits().getInFlightEntertainment() : null)
+                .complimentaryBeverages(fare.getInFlightBenefits() != null ? fare.getInFlightBenefits().getComplimentaryBeverages() : null)
+                .freeDateChange(fare.getFlexibilityBenefits() != null ? fare.getFlexibilityBenefits().getFreeDateChange() : null)
+                .partialRefund(fare.getFlexibilityBenefits() != null ? fare.getFlexibilityBenefits().getPartialRefund() : null)
+                .fullRefund(fare.getFlexibilityBenefits() != null ? fare.getFlexibilityBenefits().getFullRefund() : null)
+                .loungeAccess(fare.getPremiumServiceBenefits() != null ? fare.getPremiumServiceBenefits().getLoungeAccess() : null)
+                .airportTransfer(fare.getPremiumServiceBenefits() != null ? fare.getPremiumServiceBenefits().getAirportTransfer() : null)
+                .fareRules(fare.getFareRules() != null ? fareRulesMapper.toResponse(fare.getFareRules()) : null)
+                .baggagePolicy(fare.getBaggagePolicy() != null ? baggagePolicyMapper.toResponse(fare.getBaggagePolicy()) : null)
                 .createdAt(fare.getCreatedAt()).updatedAt(fare.getUpdatedAt()).build();
     }
 
