@@ -3,6 +3,7 @@ package com.airline.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -16,6 +17,7 @@ import java.time.Instant;
 @Builder
 @Entity
 @EntityListeners(AuditingEntityListener.class)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class BaggagePolicy {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

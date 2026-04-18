@@ -12,6 +12,7 @@
         <module name="common-lib" />
         <module name="user-service" />
         <module name="seat-service" />
+        <module name="ancillary-service" />
         <module name="core-service" />
         <module name="pricing-service" />
       </profile>
