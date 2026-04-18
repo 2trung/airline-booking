@@ -1,0 +1,30 @@
+package com.airline.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
+public class FlightCabinAncillaryResponse {
+    Long id;
+
+    Long flightId;
+
+    Long cabinClassId;
+
+    AncillaryResponse ancillary;
+
+    Boolean available;
+
+    Integer maxQuantity;
+
+    Double price;
+
+    Boolean includedInFare;
+}
