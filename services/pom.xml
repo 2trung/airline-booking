@@ -21,6 +21,7 @@
         <module>seat-service</module>
         <module>pricing-service</module>
         <module>ancillary-service</module>
+        <module>booking-service</module>
     </modules>
 
 </project>

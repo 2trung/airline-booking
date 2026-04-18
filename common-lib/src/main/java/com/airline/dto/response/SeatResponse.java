@@ -1,14 +1,13 @@
 package com.airline.dto.response;
 
 import com.airline.enums.SeatType;
-import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -45,8 +44,8 @@ public class SeatResponse {
     Long carbinClassId;
     String cabinClassName;
 
-    LocalDateTime createdAt;
-    LocalDateTime updatedAt;
+    Instant createdAt;
+    Instant updatedAt;
 
     Boolean isBookable;
     String fullPosition;

@@ -6,7 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -34,8 +34,8 @@ public class User {
     private UserRole role;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
-    private LocalDateTime lastLoginAt;
+    private Instant updatedAt;
+    private Instant lastLoginAt;
 }

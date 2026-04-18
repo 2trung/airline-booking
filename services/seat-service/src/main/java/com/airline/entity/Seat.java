@@ -9,7 +9,7 @@ import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -62,10 +62,10 @@ public class Seat {
     CabinClass cabinClass;
 
     @CreationTimestamp
-    LocalDateTime createdAt;
+    Instant createdAt;
 
     @UpdateTimestamp
-    LocalDateTime updatedAt;
+    Instant updatedAt;
 
     @CreatedBy
     String createdBy;
