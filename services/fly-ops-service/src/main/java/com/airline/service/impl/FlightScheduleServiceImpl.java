@@ -1,7 +1,9 @@
 package com.airline.service.impl;
 
+import com.airline.client.AirlineClient;
 import com.airline.dto.request.FlightInstanceRequest;
 import com.airline.dto.request.FlightScheduleRequest;
+import com.airline.dto.response.AirportResponse;
 import com.airline.dto.response.FlightScheduleResponse;
 import com.airline.entity.Flight;
 import com.airline.entity.FlightSchedule;
@@ -31,6 +33,7 @@ public class FlightScheduleServiceImpl implements FlightScheduleService {
     private final FlightScheduleRepository flightScheduleRepository;
     private final FlightRepository flightRepository;
     private final FlightInstanceService flightInstanceService;
+    private final AirlineClient airlineClient;
 
     @Override
     public FlightScheduleResponse createFlightSchedule(FlightScheduleRequest flightScheduleRequest) {
@@ -65,14 +68,14 @@ public class FlightScheduleServiceImpl implements FlightScheduleService {
             }
         }
 
-        return FlightScheduleMapper.toResponse(saved);
+        return convertToFlightScheduleResponse(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
     public FlightScheduleResponse getFlightScheduleById(Long id) {
         FlightSchedule flightSchedule = findByIdOrThrow(id);
-        return FlightScheduleMapper.toResponse(flightSchedule);
+        return convertToFlightScheduleResponse(flightSchedule);
     }
 
     @Override
@@ -101,7 +104,7 @@ public class FlightScheduleServiceImpl implements FlightScheduleService {
         
         List<FlightSchedule> schedules = flightScheduleRepository.findByAirlineId(airlineId);
         return schedules.stream()
-                .map(FlightScheduleMapper::toResponse)
+                .map(this::convertToFlightScheduleResponse)
                 .collect(Collectors.toList());
     }
 
@@ -150,8 +153,6 @@ public class FlightScheduleServiceImpl implements FlightScheduleService {
     }
 
     private void validateScheduleDates(FlightSchedule flightSchedule) {
-        // Note: Entity uses LocalTime instead of LocalDate for dates - type mismatch
-        // This validation is a placeholder until entity is fixed
         if (flightSchedule.getStartDate() != null && flightSchedule.getEndDate() != null) {
             if (flightSchedule.getEndDate().isBefore(flightSchedule.getStartDate())) {
                 throw new BadRequestException("End date must be after or equal to start date");
@@ -163,5 +164,12 @@ public class FlightScheduleServiceImpl implements FlightScheduleService {
                 throw new BadRequestException("Arrival time must be after departure time");
             }
         }
+    }
+
+
+    private FlightScheduleResponse convertToFlightScheduleResponse(FlightSchedule flightSchedule) {
+        AirportResponse departureAirport = airlineClient.getAirportById(flightSchedule.getDepartureAirportId());
+        AirportResponse arrivalAirport = airlineClient.getAirportById(flightSchedule.getArrivalAirportId());
+        return FlightScheduleMapper.toResponse(flightSchedule, departureAirport, arrivalAirport);
     }
 }

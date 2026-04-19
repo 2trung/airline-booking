@@ -40,7 +40,7 @@ public class FlightScheduleMapper {
         if (request.getIsActive() != null) existing.setIsActive(request.getIsActive());
     }
 
-    public static FlightScheduleResponse toResponse(FlightSchedule flightSchedule) {
+    public static FlightScheduleResponse toResponse(FlightSchedule flightSchedule, AirportResponse departureAirport, AirportResponse arrivalAirport) {
         if (flightSchedule == null) {
             return null;
         }
@@ -49,12 +49,10 @@ public class FlightScheduleMapper {
                 .id(flightSchedule.getId())
                 .flightId(flightSchedule.getFlight().getId())
                 .flightNumber(flightSchedule.getFlight().getFlightNumber())
-                .departureAirport(AirportResponse.builder()
-                        .id(flightSchedule.getDepartureAirportId())
-                        .build())
-                .arrivalAirport(AirportResponse.builder()
-                        .id(flightSchedule.getArrivalAirportId())
-                        .build())
+                .departureAirport(departureAirport)
+                .arrivalAirport(arrivalAirport)
+                .departureTime(flightSchedule.getDepartureTime())
+                .arrivalTime(flightSchedule.getArrivalTime())
                 .startDate(flightSchedule.getStartDate())
                 .endDate(flightSchedule.getEndDate())
                 .operatingDays(flightSchedule.getOperatingDays())

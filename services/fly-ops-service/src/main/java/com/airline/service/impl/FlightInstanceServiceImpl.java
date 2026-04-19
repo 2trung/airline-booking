@@ -1,10 +1,13 @@
 package com.airline.service.impl;
 
+import com.airline.client.AirlineClient;
 import com.airline.dto.request.FlightInstanceRequest;
+import com.airline.dto.response.AircraftResponse;
+import com.airline.dto.response.AirlineResponse;
+import com.airline.dto.response.AirportResponse;
 import com.airline.dto.response.FlightInstanceResponse;
 import com.airline.entity.Flight;
 import com.airline.entity.FlightInstance;
-import com.airline.exception.BadRequestException;
 import com.airline.exception.ResourceNotFoundException;
 import com.airline.mapper.FlightInstanceMapper;
 import com.airline.repository.FlightInstanceRepository;
@@ -25,38 +28,40 @@ public class FlightInstanceServiceImpl implements FlightInstanceService {
 
     private final FlightInstanceRepository flightInstanceRepository;
     private final FlightRepository flightRepository;
+    private final AirlineClient airlineClient;
 
     @Override
     public FlightInstanceResponse createFlightInstance(FlightInstanceRequest flightInstanceRequest) {
-        validateRequestBody(flightInstanceRequest);
 
         Flight flight = findFlightByIdOrThrow(flightInstanceRequest.getFlightId());
+
+
+        AircraftResponse aircraftResponse = airlineClient.getAircraftById(flight.getAircraftId());
         FlightInstance entity = FlightInstanceMapper.toEntity(flightInstanceRequest, flight);
-        validateInstance(entity);
+        entity.setTotalSeats(aircraftResponse.getTotalSeats());
+        entity.setAvailableSeats(aircraftResponse.getTotalSeats());
 
         FlightInstance saved = flightInstanceRepository.save(entity);
-
-        return FlightInstanceMapper.toResponse(saved);
+        // todo: publish kafka event to create seat instance
+        return convertToFlightInstanceResponse(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
     public FlightInstanceResponse getFlightInstanceById(Long id) {
-        return FlightInstanceMapper.toResponse(findByIdOrThrow(id));
+        return convertToFlightInstanceResponse(findByIdOrThrow(id));
     }
 
     @Override
     public FlightInstanceResponse updateFlightInstance(Long id, FlightInstanceRequest flightInstanceRequest) {
-        validateRequestBody(flightInstanceRequest);
 
         FlightInstance existing = findByIdOrThrow(id);
         Flight flight = findFlightByIdOrThrow(flightInstanceRequest.getFlightId());
 
         FlightInstanceMapper.updateEntityFromRequest(existing, flightInstanceRequest, flight);
-        validateInstance(existing);
 
         FlightInstance updated = flightInstanceRepository.save(existing);
-        return FlightInstanceMapper.toResponse(updated);
+        return convertToFlightInstanceResponse(updated);
     }
 
     @Override
@@ -88,7 +93,7 @@ public class FlightInstanceServiceImpl implements FlightInstanceService {
                 onDateRange[0],
                 onDateRange[1],
                 pageable
-        ).map(FlightInstanceMapper::toResponse);
+        ).map(this::convertToFlightInstanceResponse);
     }
 
     private FlightInstance findByIdOrThrow(Long id) {
@@ -101,57 +106,15 @@ public class FlightInstanceServiceImpl implements FlightInstanceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Flight not found with id: " + id));
     }
 
-    private void validateRequestBody(FlightInstanceRequest request) {
-        if (request == null) {
-            throw new BadRequestException("Flight instance request body is required");
-        }
-        if (request.getFlightId() == null) {
-            throw new BadRequestException("Flight ID is required");
-        }
-        if (request.getScheduleId() == null) {
-            throw new BadRequestException("Schedule ID is required");
-        }
+
+    private FlightInstanceResponse convertToFlightInstanceResponse(FlightInstance flightInstance) {
+        AirlineResponse airlineResponse = airlineClient.getAirlineById(flightInstance.getFlight().getAirlineId());
+        AircraftResponse aircraftResponse = airlineClient.getAircraftById(flightInstance.getFlight().getAircraftId());
+        AirportResponse departureAirportResponse = airlineClient.getAirportById(flightInstance.getFlight().getDepartureAirportId());
+        AirportResponse arrivalAirportResponse = airlineClient.getAirportById(flightInstance.getFlight().getArrivalAirportId());
+
+        return FlightInstanceMapper.toResponse(flightInstance, aircraftResponse, airlineResponse, departureAirportResponse, arrivalAirportResponse);
     }
 
-    private void validateInstance(FlightInstance instance) {
-        if (instance.getDepartureAirportId() != null
-                && instance.getDepartureAirportId().equals(instance.getArrivalAirportId())) {
-            throw new BadRequestException("Departure and arrival airports must be different");
-        }
-
-        if (instance.getDepartureTime() == null || instance.getArrivalTime() == null) {
-            throw new BadRequestException("Departure and arrival times are required");
-        }
-
-        if (!instance.getArrivalTime().isAfter(instance.getDepartureTime())) {
-            throw new BadRequestException("Arrival time must be after departure time");
-        }
-
-        if (instance.getTotalSeats() == null || instance.getTotalSeats() <= 0) {
-            throw new BadRequestException("Total seats must be a positive number");
-        }
-
-        if (instance.getAvailableSeats() == null || instance.getAvailableSeats() < 0) {
-            throw new BadRequestException("Available seats must be zero or a positive number");
-        }
-
-        if (instance.getAvailableSeats() > instance.getTotalSeats()) {
-            throw new BadRequestException("Available seats cannot exceed total seats");
-        }
-
-        if (instance.getMinAdvanceBookingDays() != null && instance.getMinAdvanceBookingDays() < 0) {
-            throw new BadRequestException("Minimum advance booking days cannot be negative");
-        }
-
-        if (instance.getMaxAdvanceBookingDays() != null && instance.getMaxAdvanceBookingDays() < 0) {
-            throw new BadRequestException("Maximum advance booking days cannot be negative");
-        }
-
-        if (instance.getMinAdvanceBookingDays() != null
-                && instance.getMaxAdvanceBookingDays() != null
-                && instance.getMinAdvanceBookingDays() > instance.getMaxAdvanceBookingDays()) {
-            throw new BadRequestException("Minimum advance booking days cannot exceed maximum advance booking days");
-        }
-    }
 }
 

@@ -50,9 +50,8 @@ public class InsuranceCoverageServiceImpl implements InsuranceCoverageService {
                 .orElseThrow(() -> new RuntimeException("Insurance coverage not found"));
 
         Ancillary ancillary = null;
-        if (insuranceCoverage.getAncillaryId() != null) {
-            ancillary = ancillaryRepository.findById(insuranceCoverage.getAncillaryId())
-                    .orElseThrow(() -> new RuntimeException("Ancillary not found"));
+        if (insuranceCoverage.getAncillary() == null) {
+            throw new RuntimeException("Ancillary not found");
         }
 
         InsuranceCoverageMapper.updateEntityFromRequest(insuranceCoverage, insuranceCoverageRequest, ancillary);

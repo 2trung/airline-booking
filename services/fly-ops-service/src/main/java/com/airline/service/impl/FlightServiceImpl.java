@@ -1,6 +1,11 @@
 package com.airline.service.impl;
 
+import com.airline.client.AirlineClient;
+import com.airline.client.LocationClient;
 import com.airline.dto.request.FlightRequest;
+import com.airline.dto.response.AircraftResponse;
+import com.airline.dto.response.AirlineResponse;
+import com.airline.dto.response.AirportResponse;
 import com.airline.dto.response.FlightResponse;
 import com.airline.entity.Flight;
 import com.airline.exception.BadRequestException;
@@ -14,7 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -22,20 +27,24 @@ import java.time.LocalDateTime;
 public class FlightServiceImpl implements FlightService {
 
     private final FlightRepository flightRepository;
+    private final AirlineClient airlineClient;
+    private final LocationClient locationClient;
 
     @Override
     public FlightResponse createFlight(FlightRequest flightRequest) {
-        validateCreateRequest(flightRequest);
+
+        if (flightRepository.existsByFlightNumberIgnoreCase(flightRequest.getFlightNumber())) {
+            throw new BadRequestException("Flight number " + flightRequest.getFlightNumber() + " already exists");
+        }
         Flight flight = FlightMapper.toEntity(flightRequest);
-        validateFlightSchedule(flight.getDepartureDateTime(), flight.getArrivalDateTime());
         Flight saved = flightRepository.save(flight);
-        return FlightMapper.toResponse(saved);
+        return convertToFlightResponse(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
     public FlightResponse getFlightById(Long id) {
-        return FlightMapper.toResponse(findByIdOrThrow(id));
+        return convertToFlightResponse(findByIdOrThrow(id));
     }
 
     @Override
@@ -46,7 +55,7 @@ public class FlightServiceImpl implements FlightService {
         FlightMapper.updateEntityFromRequest(existing, flightRequest);
         validateFlightSchedule(existing.getDepartureDateTime(), existing.getArrivalDateTime());
         Flight updated = flightRepository.save(existing);
-        return FlightMapper.toResponse(updated);
+        return convertToFlightResponse(updated);
     }
 
     @Override
@@ -68,7 +77,7 @@ public class FlightServiceImpl implements FlightService {
                 departureAirportId,
                 arrivalAirportId,
                 pageable
-        ).map(FlightMapper::toResponse);
+        ).map(this::convertToFlightResponse);
     }
 
     private Flight findByIdOrThrow(Long id) {
@@ -107,10 +116,18 @@ public class FlightServiceImpl implements FlightService {
         }
     }
 
-    private void validateFlightSchedule(LocalDateTime departureTime, LocalDateTime arrivalTime) {
+    private void validateFlightSchedule(Instant departureTime, Instant arrivalTime) {
         if (!arrivalTime.isAfter(departureTime)) {
             throw new BadRequestException("Arrival time must be after departure time");
         }
+    }
+
+    public FlightResponse convertToFlightResponse(Flight flight) {
+        AircraftResponse aircraft = airlineClient.getAircraftById(flight.getAircraftId());
+        AirlineResponse airline = airlineClient.getAirlineById(flight.getAirlineId());
+        AirportResponse departureAirport = locationClient.getAirportById(flight.getDepartureAirportId());
+        AirportResponse arrivalAirport = locationClient.getAirportById(flight.getArrivalAirportId());
+        return FlightMapper.toResponse(flight, aircraft, airline, departureAirport, arrivalAirport);
     }
 }
 

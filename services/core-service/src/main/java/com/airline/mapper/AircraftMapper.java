@@ -59,6 +59,7 @@ public class AircraftMapper {
         return AircraftResponse.builder()
                 .id(aircraft.getId())
                 .model(aircraft.getModel())
+                .code(aircraft.getCode())
                 .manufacturer(aircraft.getManufacturer())
                 .seatingCapacity(aircraft.getCapacity())
                 .economySeats(aircraft.getEconomySeats())

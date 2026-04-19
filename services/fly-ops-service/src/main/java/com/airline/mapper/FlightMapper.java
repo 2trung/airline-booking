@@ -66,4 +66,31 @@ public class FlightMapper {
     private static String normalizeFlightNumber(String flightNumber) {
         return flightNumber == null ? null : flightNumber.trim().toUpperCase();
     }
+
+
+    public static FlightResponse toResponse(
+            Flight flight,
+            AircraftResponse aircraftResponse,
+            AirlineResponse airlineResponse,
+            AirportResponse departureAirport,
+            AirportResponse arrivalAirport
+    ) {
+        if (flight == null) {
+            return null;
+        }
+
+        return FlightResponse.builder()
+                .id(flight.getId())
+                .flightNumber(flight.getFlightNumber())
+                .airline(airlineResponse)
+                .aircraft(aircraftResponse)
+                .departureAirport(departureAirport)
+                .arrivalAirport(arrivalAirport)
+                .status(flight.getStatus())
+                .lowestPrice(flight.getLowestPrice())
+                .totalAvailableSeats(flight.getTotalAvailableSeats())
+                .createdAt(flight.getCreatedAt())
+                .updatedAt(flight.getUpdatedAt())
+                .build();
+    }
 }

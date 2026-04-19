@@ -1,5 +1,5 @@
 server:
-  port: 8007
+  port: 8010
   servlet:
     context-path: /api
 
@@ -16,3 +16,10 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true

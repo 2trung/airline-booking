@@ -17,6 +17,7 @@ public class AircraftResponse {
 
     private Long id;
     private String model;
+    private String code;
     private String manufacturer;
     private Integer seatingCapacity;
     private Integer economySeats;

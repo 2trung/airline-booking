@@ -41,7 +41,6 @@ public class InsuranceCoverageMapper {
         return InsuranceCoverage
                 .builder()
                 .ancillary(ancillary)
-                .ancillaryId(ancillary.getId())
                 .coverageType(request.getCoverageType())
                 .name(request.getName())
                 .description(request.getDescription())

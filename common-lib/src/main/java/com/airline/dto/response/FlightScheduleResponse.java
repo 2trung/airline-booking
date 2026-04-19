@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -20,6 +21,9 @@ public class FlightScheduleResponse {
 
     private AirportResponse departureAirport;
     private AirportResponse arrivalAirport;
+
+    private Instant departureTime;
+    private Instant arrivalTime;
 
     private LocalDate startDate;
     private LocalDate endDate;

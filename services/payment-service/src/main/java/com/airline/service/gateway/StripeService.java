@@ -10,6 +10,8 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentLink;
 import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentLinkCreateParams;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -18,6 +20,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class StripeService {
     @Value("${stripe.secret.key}")
     private String STRIPE_SECRET_KEY;

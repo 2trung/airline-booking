@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Set;
 
 @Getter
@@ -29,10 +29,10 @@ public class FlightSchedule {
     private Long arrivalAirportId;
 
     @Column(nullable = false)
-    private LocalTime departureTime;
+    private Instant departureTime;
 
     @Column(nullable = false)
-    private LocalTime arrivalTime;
+    private Instant arrivalTime;
 
     @Column(nullable = false)
     private LocalDate startDate;

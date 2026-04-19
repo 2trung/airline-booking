@@ -20,8 +20,6 @@ public class InsuranceCoverage {
     @ManyToOne
     Ancillary ancillary;
 
-    Long ancillaryId;
-
     @Column(nullable = false)
     CoverageType coverageType;
 

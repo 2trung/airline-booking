@@ -7,8 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Set;
 
 @Data
@@ -21,10 +21,10 @@ public class FlightScheduleRequest {
     private Long flightId;
 
     @NotNull(message = "Departure date is required")
-    private LocalTime departureTime;
+    private Instant departureTime;
 
     @NotNull(message = "Arrival date is required")
-    private LocalTime arrivalTime;
+    private Instant arrivalTime;
 
     @NotNull(message = "Start date is required")
     private LocalDate startDate;

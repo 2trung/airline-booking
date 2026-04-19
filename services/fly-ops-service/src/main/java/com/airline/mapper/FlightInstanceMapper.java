@@ -1,6 +1,8 @@
 package com.airline.mapper;
 
 import com.airline.dto.request.FlightInstanceRequest;
+import com.airline.dto.response.AircraftResponse;
+import com.airline.dto.response.AirlineResponse;
 import com.airline.dto.response.AirportResponse;
 import com.airline.dto.response.FlightInstanceResponse;
 import com.airline.entity.Flight;
@@ -116,5 +118,40 @@ public class FlightInstanceMapper {
             throw new IllegalArgumentException("Invalid " + fieldName + ": " + onDate + ". Expected epoch milliseconds");
         }
     }
+
+
+    public static FlightInstanceResponse toResponse(
+            FlightInstance fi,
+            AircraftResponse aircraftResponse,
+            AirlineResponse airlineResponse,
+            AirportResponse departureAirportResponse,
+            AirportResponse arrivalAirportResponse
+    ) {
+        if (fi == null) {
+            return null;
+        }
+        return FlightInstanceResponse.builder()
+                .id(fi.getId())
+                .flightId(fi.getFlight() == null ? null : fi.getFlight().getId())
+                .flightNumber(fi.getFlight() == null ? null : fi.getFlight().getFlightNumber())
+                .airlineId(fi.getAirlineId())
+                .aircraftId(fi.getFlight() == null ? null : fi.getFlight().getAircraftId())
+                .aircraftModel(aircraftResponse == null ? null : aircraftResponse.getModel())
+                .aircraftCode(aircraftResponse == null ? null : aircraftResponse.getCode())
+                .airlineName(airlineResponse == null ? null : airlineResponse.getName())
+                .departureAirport(departureAirportResponse)
+                .arrivalAirport(arrivalAirportResponse)
+                .departureTime(fi.getDepartureTime())
+                .arrivalTime(fi.getArrivalTime())
+                .formatDuration(fi.getFormattedDuration())
+                .totalSeats(fi.getTotalSeats())
+                .availableSeats(fi.getAvailableSeats())
+                .status(fi.getStatus())
+                .minAdvanceBookingDays(fi.getMinAdvanceBookingDays())
+                .maxAdvanceBookingDays(fi.getMaxAdvanceBookingDays())
+                .isActive(fi.getIsActive())
+                .build();
+    }
+
 }
 
