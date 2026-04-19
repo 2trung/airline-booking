@@ -3,7 +3,6 @@ package com.airline.service.impl;
 import com.airline.config.JwtProvider;
 import com.airline.dto.request.UserRegisterRequest;
 import com.airline.dto.response.AuthResponse;
-import com.airline.dto.response.UserResponse;
 import com.airline.entity.User;
 import com.airline.enums.UserRole;
 import com.airline.mapper.UserMapper;
@@ -13,15 +12,11 @@ import com.airline.service.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Date;
-
+import java.time.Instant;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -36,7 +31,7 @@ public class AuthServiceImpl implements AuthService {
         Authentication authentication = authenticate(email, password);
 
         User user = userRepository.findByEmail(email);
-        user.setLastLoginAt(LocalDateTime.now());
+        user.setLastLoginAt(Instant.now());
         userRepository.save(user);
         String jwt = jwtProvider.generateToken(authentication, user.getId());
 
@@ -77,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(userRegisterRequest.getEmail())
                 .password(passwordEncoder.encode(userRegisterRequest.getPassword()))
                 .fullName(userRegisterRequest.getFullName())
-                .phoneNumber(userRegisterRequest.getPhoneNumber())
+                .phone(userRegisterRequest.getPhone())
                 .role(userRegisterRequest.getRole())
                 .build();
 

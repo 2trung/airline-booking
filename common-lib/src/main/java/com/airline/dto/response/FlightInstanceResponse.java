@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -25,8 +25,8 @@ public class FlightInstanceResponse {
     private AirportResponse departureAirport;
     private AirportResponse arrivalAirport;
 
-    private LocalDateTime departureTime;
-    private LocalDateTime arrivalTime;
+    private Instant departureTime;
+    private Instant arrivalTime;
     private String formatDuration;
 
     private Integer totalSeats;

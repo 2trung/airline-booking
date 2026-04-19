@@ -1,5 +1,6 @@
 package com.airline.dto.response;
 
+import com.airline.enums.PaymentGateway;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,8 +12,13 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
-public class PaymentLinkResponse {
-    Long id;
-    String providerPaymentId;
+public class PaymentInitiateResponse {
+    Long paymentId;
+    PaymentGateway gateway;
+    Double amount;
+    String transactionId;
+    String description;
     String checkOutUrl;
+    String message;
+    Boolean success;
 }

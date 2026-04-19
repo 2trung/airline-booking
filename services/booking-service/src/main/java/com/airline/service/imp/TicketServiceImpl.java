@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -47,7 +46,7 @@ public class TicketServiceImpl implements TicketService {
     private String generateUniqueTicketNumber() {
         String ticketNumber;
         do {
-            String datePart = LocalDateTime.now().toString().substring(0, 10);
+            String datePart = Instant.now().toString().substring(0, 10);
             String randomPart = UUID.randomUUID().toString().substring(0, 8);
             ticketNumber = String.format("TICKET-%s-%s", datePart, randomPart);
         } while (ticketRepository.existsByTicketNumber(ticketNumber));

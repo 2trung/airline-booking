@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -31,8 +30,8 @@ public class BookingResponse {
     String flightName;
     String departureAirport;
     String arrivalAirport;
-    LocalDateTime departureTime;
-    LocalDateTime arrivalTime;
+    Instant departureTime;
+    Instant arrivalTime;
 
     BookingStatus status;
     Instant bookingDate;

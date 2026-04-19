@@ -16,3 +16,11 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+stripe:
+  secret:
+    key: sk_live_
+  public:
+    key: pk_live_
+  callback:
+    url: http://localhost:5173

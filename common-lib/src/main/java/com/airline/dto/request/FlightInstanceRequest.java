@@ -9,7 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -29,10 +29,10 @@ public class FlightInstanceRequest {
     private String flightNumber;
 
     @NotNull(message = "Departure time is required")
-    private LocalDateTime departureDateTime;
+    private Instant departureDateTime;
 
     @NotNull(message = "Arrival time is required")
-    private LocalDateTime arrivalDateTime;
+    private Instant arrivalDateTime;
 
     @NotNull(message = "Total seats is required")
     @Positive(message = "Total seats must be a positive number")

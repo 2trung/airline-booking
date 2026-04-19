@@ -1,5 +1,6 @@
-package com.airline.dto.response;
+package com.airline.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,8 +12,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
-public class PaymentLinkResponse {
-    Long id;
-    String providerPaymentId;
-    String checkOutUrl;
+public class PaymentVerifyRequest {
+    @NotBlank(message = "stripePaymentIntentId is required")
+    String stripePaymentIntentId;
 }

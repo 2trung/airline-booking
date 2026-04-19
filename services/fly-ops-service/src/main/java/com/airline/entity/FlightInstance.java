@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -31,9 +31,9 @@ public class FlightInstance {
     @Column(nullable = false)
     private Long scheduleId;
 
-    private LocalDateTime departureTime;
+    private Instant departureTime;
 
-    private LocalDateTime arrivalTime;
+    private Instant arrivalTime;
 
     @Column(nullable = false)
     private Integer totalSeats;
