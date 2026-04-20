@@ -1,12 +1,19 @@
 package com.airline.service.imp;
 
+import com.airline.client.AncillaryClient;
+import com.airline.client.FlightClient;
+import com.airline.client.PaymentClient;
+import com.airline.client.SeatClient;
 import com.airline.dto.PaymentDTO;
 import com.airline.dto.request.BookingRequest;
 import com.airline.dto.request.PassengerRequest;
+import com.airline.dto.request.PaymentInitiateRequest;
 import com.airline.dto.response.*;
 import com.airline.entity.Booking;
 import com.airline.entity.Passenger;
 import com.airline.enums.BookingStatus;
+import com.airline.enums.PaymentGateway;
+import com.airline.integration.FareIntegrationService;
 import com.airline.mapper.BookingMapper;
 import com.airline.repository.BookingRepository;
 import com.airline.service.BookingService;
@@ -26,9 +33,14 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final PassengerService passengerService;
     private final TicketService ticketService;
+    private final FlightClient flightClient;
+    private final FareIntegrationService fareIntegrationService;
+    private final SeatClient seatClient;
+    private final AncillaryClient ancillaryClient;
+    private final PaymentClient paymentClient;
 
     @Override
-    public BookingResponse createBooking(BookingRequest request, Long userId) {
+    public PaymentInitiateResponse createBooking(BookingRequest request, Long userId) {
         // 1. Generate unique booking reference
         String bookingReference = generateBookingReference();
 
@@ -38,13 +50,13 @@ public class BookingServiceImpl implements BookingService {
             Passenger passenger = passengerService.createPassenger(passengerRequest, userId);
             passengers.add(passenger);
         }
-        // 3. todo: flight exist
-
+        // 3. flight exist
+        FlightResponse flightResponse = flightClient.getFlightById(request.getFlightId());
 
         // 4. Create booking with pending seats
         Booking booking = BookingMapper.toEntity(request, userId, passengers, bookingReference);
-        // todo: set airline id from flight response
-        booking.setAirlineId(1L);
+        // set airline id from flight response
+        booking.setAirlineId(flightResponse.getAirline().getId());
 
         // 5. Set seat instance ids
         List<Long> seatInstanceIds = request.getPassengers().stream()
@@ -63,11 +75,27 @@ public class BookingServiceImpl implements BookingService {
         ticketService.generateTicketsForBooking(booking);
 
         // todo: 7. Calculate total price
+        // total fare
+        Double totalFare = fareIntegrationService.calculateFareTotal(request.getFareId());
+        // seat
+        Double seatPrice = seatClient.calculateSeatPrice(seatInstanceIds);
+        // ancillaries
+        Double ancillaryPrice = ancillaryClient.calculateAncillaryPrice(request.getAncillaryIds());
+        // meals
+        Double mealPrice = ancillaryClient.calculateMealPrice(request.getMealIds());
 
-        // todo: 8. Init payment
+         Double totalPrice = totalFare + seatPrice + ancillaryPrice + mealPrice;
 
-
-        return convertToBookingResponse(booking);
+        PaymentInitiateRequest paymentInitiateRequest = PaymentInitiateRequest.builder()
+                .bookingId(booking.getId())
+                .amount(totalPrice)
+                .paymentGateway(PaymentGateway.STRIPE)
+                .userId(userId)
+                .amount(totalPrice)
+                .description("Booking Payment with reference: " + bookingReference)
+                .build();
+        // Init payment
+         return paymentClient.initiatePayment(paymentInitiateRequest);
     }
 
     @Override

@@ -1,7 +1,9 @@
 package com.airline.controller;
 
 import com.airline.dto.request.BookingRequest;
+import com.airline.dto.request.PaymentInitiateRequest;
 import com.airline.dto.response.BookingResponse;
+import com.airline.dto.response.PaymentInitiateResponse;
 import com.airline.enums.BookingStatus;
 import com.airline.service.BookingService;
 import jakarta.validation.Valid;
@@ -20,11 +22,11 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping
-    public ResponseEntity<BookingResponse> createBooking(
+    public ResponseEntity<PaymentInitiateResponse> createBooking(
             @Valid @RequestBody BookingRequest request,
             @RequestParam Long userId
     ) {
-        BookingResponse response = bookingService.createBooking(request, userId);
+        PaymentInitiateResponse response = bookingService.createBooking(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

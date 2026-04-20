@@ -2,13 +2,14 @@ package com.airline.service;
 
 import com.airline.dto.request.BookingRequest;
 import com.airline.dto.response.BookingResponse;
+import com.airline.dto.response.PaymentInitiateResponse;
 import com.airline.enums.BookingStatus;
 
 import java.util.List;
 
 public interface BookingService {
 
-    BookingResponse createBooking(BookingRequest request, Long userId);
+    PaymentInitiateResponse createBooking(BookingRequest request, Long userId);
 
     BookingResponse updateBooking(Long id, BookingRequest request);
 
