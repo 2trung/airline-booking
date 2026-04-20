@@ -8,6 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="payment-service" />
+        <module name="airline-core-service" />
         <module name="location-service" />
         <module name="fly-ops-service" />
         <module name="booking-service" />
@@ -16,7 +17,6 @@
         <module name="user-service" />
         <module name="seat-service" />
         <module name="ancillary-service" />
-        <module name="core-service" />
         <module name="pricing-service" />
         <module name="service-registry" />
       </profile>
@@ -24,9 +24,9 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="airline-core-service" options="-parameters" />
       <module name="ancillary-service" options="-parameters" />
       <module name="booking-service" options="-parameters" />
-      <module name="core-service" options="-parameters" />
       <module name="fly-ops-service" options="-parameters" />
       <module name="location-service" options="-parameters" />
       <module name="payment-service" options="-parameters" />
