@@ -1,10 +1,11 @@
 package com.airline.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
@@ -19,32 +20,41 @@ import java.time.Instant;
 @EntityListeners(AuditingEntityListener.class)
 public class FareRules {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
     String ruleName;
 
+    @Column()
     Long airlineId;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
+    @JsonIgnore
     Fare fare;
 
     Boolean isRefundable;
 
-    Boolean isChangeable;
-
+    @Column(name = "change_fee")
     Double changeFee;
 
+    @Column(name = "cancellation_fee")
     Double cancellationFee;
 
-    Integer refundableDays;
+    @Column()
+    Integer refundDeadlineDays;
 
-    Integer changeableHours;
+    @Column()
+    Integer changeDeadlineHours;
 
-    @CreationTimestamp
-    private Instant createdAt;
+    @Builder.Default
+    Boolean isChangeable = false;
 
-    @UpdateTimestamp
-    private Instant updatedAt;
+    @Column(updatable = false)
+    @CreatedDate
+    Instant createdAt;
+
+    @LastModifiedDate
+    Instant updatedAt;
 
 }

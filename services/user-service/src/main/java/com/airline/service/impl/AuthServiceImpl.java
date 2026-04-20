@@ -8,22 +8,28 @@ import com.airline.enums.UserRole;
 import com.airline.mapper.UserMapper;
 import com.airline.repository.UserRepository;
 import com.airline.service.AuthService;
-import com.airline.service.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.Collections;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
-    private final CustomUserDetails customUserDetails;
+    private final CustomUserDetailsService customUserDetails;
 
     @Override
     public AuthResponse login(String email, String password) throws Exception {
@@ -39,7 +45,7 @@ public class AuthServiceImpl implements AuthService {
                 .message("Welcome back " + user.getFullName() + "!")
                 .title("Login Successful")
                 .user(UserMapper.toUserResponse(user))
-                .token(jwt)
+                .jwt(jwt)
                 .build();
     }
     private Authentication authenticate(String email, String password) throws Exception {
@@ -84,7 +90,30 @@ public class AuthServiceImpl implements AuthService {
                 .message("Welcome " + newUser.getFullName() + "! Your account has been created successfully.")
                 .title("Registration Successful")
                 .user(UserMapper.toUserResponse(newUser))
-                .token(jwt)
+                .jwt(jwt)
                 .build();
+    }
+
+    @Service
+    @RequiredArgsConstructor
+    public static class CustomUserDetailsService implements UserDetailsService {
+        private final UserRepository userRepository;
+
+        @Override
+        public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+            User user = userRepository.findByEmail(username);
+            if (user == null) {
+                throw new UsernameNotFoundException("User not found with email: " + username);
+            }
+            GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(user.getRole().toString());
+            Collection<GrantedAuthority> authorities = Collections.singletonList(grantedAuthority);
+            return new org.springframework.security.core.userdetails.User(
+                    user.getEmail(),
+                    user.getPassword(),
+                    authorities
+            );
+        }
+
+
     }
 }

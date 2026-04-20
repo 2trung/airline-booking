@@ -2,9 +2,11 @@ package com.airline.controller;
 
 import com.airline.dto.request.CabinClassRequest;
 import com.airline.dto.response.CabinClassResponse;
+import com.airline.enums.CabinClassType;
 import com.airline.service.CabinClassService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,8 +20,17 @@ public class CabinClassController {
     private final CabinClassService cabinClassService;
 
     @PostMapping
-    public ResponseEntity<CabinClassResponse> createCabinClass(@Valid @RequestBody CabinClassRequest cabinClassRequest) {
-        return ResponseEntity.ok(cabinClassService.createCabinClass(cabinClassRequest));
+    public ResponseEntity<CabinClassResponse> createCabinClass(
+            @Valid @RequestBody CabinClassRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(cabinClassService.createCabinClass(request));
+    }
+
+    @PostMapping("/create/bulk")
+    public ResponseEntity<List<CabinClassResponse>> createCabinClasses(
+            @Valid @RequestBody List<CabinClassRequest> requests) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(cabinClassService.createCabinClasses(requests));
     }
 
     @GetMapping("/{id}")
@@ -27,25 +38,27 @@ public class CabinClassController {
         return ResponseEntity.ok(cabinClassService.getCabinClassById(id));
     }
 
-    @GetMapping("/aircraft/{aircraftId}")
-    public ResponseEntity<List<CabinClassResponse>> getAllCabinClassesByAircraftId(@PathVariable Long aircraftId) {
-        return ResponseEntity.ok(cabinClassService.getAllCabinClassesByAircraftId(aircraftId));
+    @GetMapping("/aircraft/{id}/name/{cabinClass}")
+    public ResponseEntity<CabinClassResponse> getCabinClassByAircraftIdAndName(
+            @PathVariable CabinClassType cabinClass,
+            @PathVariable Long id) {
+        return ResponseEntity.ok(
+                cabinClassService.getByAircraftIdAndName(
+                        id, cabinClass
+                ));
     }
 
-    @GetMapping("/aircraft/{aircraftId}/name/{name}")
-    public ResponseEntity<CabinClassResponse> getByAircraftIdAndName(
-            @PathVariable Long aircraftId,
-            @PathVariable String name
-    ) {
-        return ResponseEntity.ok(cabinClassService.getByAircraftIdAndName(aircraftId, name));
+    @GetMapping("/aircraft/{aircraftId}")
+    public ResponseEntity<List<CabinClassResponse>> getCabinClassesByAircraftId(
+            @PathVariable Long aircraftId) {
+        return ResponseEntity.ok(cabinClassService.getCabinClassesByAircraftId(aircraftId));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<CabinClassResponse> updateCabinClass(
             @PathVariable Long id,
-            @Valid @RequestBody CabinClassRequest cabinClassRequest
-    ) {
-        return ResponseEntity.ok(cabinClassService.updateCabinClass(id, cabinClassRequest));
+            @Valid @RequestBody CabinClassRequest request) {
+        return ResponseEntity.ok(cabinClassService.updateCabinClass(id, request));
     }
 
     @DeleteMapping("/{id}")

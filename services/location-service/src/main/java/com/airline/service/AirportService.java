@@ -2,23 +2,23 @@ package com.airline.service;
 
 import com.airline.dto.request.AirportRequest;
 import com.airline.dto.response.AirportResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.airline.exception.AirportException;
+import com.airline.exception.CityException;
+
+import java.util.List;
 
 public interface AirportService {
-    AirportResponse createAirport(AirportRequest airportRequest) throws Exception;
+    AirportResponse createAirport(AirportRequest request) throws AirportException, CityException;
 
-    AirportResponse getAirportById(Long id) throws Exception;
+    List<AirportResponse> createBulkAirports(List<AirportRequest> requests) throws AirportException, CityException;
 
-    AirportResponse updateAirport(Long id, AirportRequest airportRequest) throws Exception;
+    AirportResponse getAirportById(Long id);
 
-    void deleteAirport(Long id) throws Exception;
+    List<AirportResponse> getAllAirports();
 
-    Page<AirportResponse> getAllAirports(Pageable pageable);
+    AirportResponse updateAirport(Long id, AirportRequest request) throws AirportException, CityException;
 
-    Page<AirportResponse> searchAirports(String keyword, Pageable pageable);
+    void deleteAirport(Long id) throws AirportException;
 
-    Page<AirportResponse> getAirportsByCity(Long cityId, Pageable pageable) throws Exception;
-
-    boolean existsByIataCode(String iataCode);
+    List<AirportResponse> getAirportsByCityId(Long cityId);
 }

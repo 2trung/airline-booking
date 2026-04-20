@@ -10,24 +10,24 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class FlightMealRequest {
 
-    @NotNull(message = "Flight id is required")
+    @NotNull(message = "Flight ID is required")
     Long flightId;
 
-
-    @NotNull(message = "Meal id is required")
+    @NotNull(message = "Meal ID is required")
     Long mealId;
 
+    @NotNull(message = "Availability status is required")
     Boolean available;
 
-    @DecimalMin(value = "0.0", inclusive = true, message = "Price must be zero or positive")
+    @DecimalMin(value = "0.0", message = "Price cannot be negative")
     Double price;
 
-    @Min(value = 0, message = "Display order must be zero or positive")
+    @Min(value = 0, message = "Display order cannot be negative")
     Integer displayOrder;
 }

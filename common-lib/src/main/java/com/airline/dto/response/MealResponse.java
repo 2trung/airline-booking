@@ -1,6 +1,5 @@
 package com.airline.dto.response;
 
-import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,9 +9,9 @@ import lombok.experimental.FieldDefaults;
 import java.time.Instant;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class MealResponse {
     Long id;
@@ -20,13 +19,17 @@ public class MealResponse {
     String name;
     String description;
     String mealType;
-    String dietaryRestrictions;
+    String dietaryRestriction;
     String ingredients;
+    String allergens;
+    String nutritionalInfo;
     String imageUrl;
-    Boolean available = true;
-    Boolean requireAdvanceBooking = false;
+    Double price;
+    String currency;
+    Boolean available;
+    Boolean requiresAdvanceBooking;
     Integer advanceBookingHours;
-    Integer displayOrder = 0;
+    Integer displayOrder;
     Long airlineId;
     Instant createdAt;
     Instant updatedAt;

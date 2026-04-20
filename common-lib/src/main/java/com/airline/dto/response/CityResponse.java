@@ -1,20 +1,20 @@
 package com.airline.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class CityResponse {
-    private Long id;
-    private String name;
-    private String cityCode;
-    private String countryName;
-    private String countryCode;
-    private String regionCode;
-    private String timeZone;
+
+    Long id;
+    String name;
+    String cityCode;
+    String countryCode;
+    String countryName;
+    String regionCode;
+    String timeZoneOffset;
 }

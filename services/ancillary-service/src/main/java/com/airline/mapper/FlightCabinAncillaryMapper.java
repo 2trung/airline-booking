@@ -8,22 +8,23 @@ import java.util.List;
 
 public class FlightCabinAncillaryMapper {
 
-    public static FlightCabinAncillaryResponse toResponse(FlightCabinAncillary flightCabinAncillary,
-                                                          List<InsuranceCoverageResponse> insuranceCoverages
-    ) {
-        if (flightCabinAncillary == null) {
+    public static FlightCabinAncillaryResponse toResponse(
+            FlightCabinAncillary entity,
+            List<InsuranceCoverageResponse> coverages) {
+        if (entity == null) {
             return null;
         }
 
         return FlightCabinAncillaryResponse.builder()
-                .id(flightCabinAncillary.getId())
-                .flightId(flightCabinAncillary.getFlightId())
-                .cabinClassId(flightCabinAncillary.getCabinClassId())
-                .ancillary(AncillaryMapper.toResponse(flightCabinAncillary.getAncillary(), insuranceCoverages))
-                .available(flightCabinAncillary.getAvailable())
-                .maxQuantity(flightCabinAncillary.getMaxQuantity())
-                .price(flightCabinAncillary.getPrice())
-                .includedInFare(flightCabinAncillary.getIncludedInFare())
+                .id(entity.getId())
+                .flightId(entity.getFlightId())
+                .cabinClassId(entity.getCabinClassId())
+                .ancillary(AncillaryMapper.toResponse(entity.getAncillary(), coverages))
+                .available(entity.getAvailable())
+                .maxQuantity(entity.getMaxQuantity())
+                .price(entity.getPrice())
+                .currency(entity.getCurrency())
+                .includedInFare(entity.getIncludedInFare())
                 .build();
     }
 }

@@ -1,12 +1,12 @@
 package com.airline.controller;
 
+import com.airline.dto.request.SeatRequest;
 import com.airline.dto.response.SeatResponse;
 import com.airline.service.SeatService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -16,9 +16,22 @@ import java.util.List;
 public class SeatController {
     private final SeatService seatService;
 
-    @GetMapping()
+
+    @GetMapping
     public ResponseEntity<List<SeatResponse>> getAllSeats() {
         return ResponseEntity.ok(seatService.getAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<SeatResponse> getSeatById(@PathVariable Long id) {
+        return ResponseEntity.ok(seatService.getSeatById(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<SeatResponse> updateSeat(
+            @PathVariable Long id,
+            @Valid @RequestBody SeatRequest request) {
+        return ResponseEntity.ok(seatService.updateSeat(id, request));
     }
 
 }

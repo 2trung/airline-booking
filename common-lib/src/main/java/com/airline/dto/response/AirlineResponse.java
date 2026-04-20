@@ -2,49 +2,48 @@ package com.airline.dto.response;
 
 import com.airline.embeddable.Support;
 import com.airline.enums.AirlineStatus;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class AirlineResponse {
-    private Long id;
+    Long id;
 
-    private String iataCode;
-    private String icaoCode;
+    String iataCode;
+    String icaoCode;
 
-    private String name;
-    private String alias;
-    private String country;
+    String name;
+    String alias;
+    String country;
 
-    private String logoUrl;
-    private String website;
+    String logoUrl;
+    String website;
 
-    private AirlineStatus status;
-    private String alliance;
+    AirlineStatus status;
+    String alliance;
 
-    private Long baggagePolicyId;
+//    Long baggagePolicyId;
 
-    private Long headquartersCityId;
-//    private String headquartersCityName;
+    Long headquartersCityId;
+//    String headquartersCityName;
+//
+//    String supportEmail;
+//    String supportPhone;
+//    String supportHours;
 
-    private String supportEmail;
-    private String supportPhone;
-    private String supportHours;
+    Instant createdAt;
+    Instant updatedAt;
 
-    private Instant createdAt;
-    private Instant updatedAt;
+    Long ownerId;
+    UserResponse owner;
+    Long updatedById;
 
-    private Long ownerId;
-    private UserResponse owner;
-    private Long updatedById;
-
-//    private CityResponse headquartersCity;
-    private Support support;
+//    CityResponse headquartersCity;
+    Support support;
 }

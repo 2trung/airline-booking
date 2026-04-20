@@ -1,47 +1,51 @@
 package com.airline.dto.response;
 
+
 import com.airline.enums.FlightStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class FlightInstanceResponse {
-    private Long id;
-    private Long flightId;
-    private String flightNumber;
-    private Long airlineId;
-    private String airlineName;
-    private String airlineLogo;
-    private Long aircraftId;
-    private String aircraftModel;
-    private String aircraftCode;
-    private AirportResponse departureAirport;
-    private AirportResponse arrivalAirport;
+    Long id;
 
-    private Instant departureTime;
-    private Instant arrivalTime;
-    private String formatDuration;
+    Long flightId;
+    String flightNumber;
 
-    private Integer totalSeats;
-    private Integer availableSeats;
+    Long airlineId;
+    String airlineName;
+    String airlineLogo;
+    Long aircraftId;
+    String aircraftModal;
+    String aircraftCode;
+    AirportResponse departureAirport;
+    AirportResponse arrivalAirport;
 
-    private FlightStatus status;
+    LocalDateTime departureDateTime;
+    LocalDateTime arrivalDateTime;
+    String formattedDuration;
 
-    private Integer minAdvanceBookingDays;
-    private Integer maxAdvanceBookingDays;
+    Integer totalSeats;
+    Integer availableSeats;
 
-    private Boolean isActive;
+    FlightStatus status;
 
-    private String terminal;
+    Integer minAdvanceBookingDays;
+    Integer maxAdvanceBookingDays;
+    Boolean isActive;
 
-    private String gate;
+    String terminal;
+    String gate;
 
-    private Long version;
+    Long version;
+    FareResponse fare;
 }

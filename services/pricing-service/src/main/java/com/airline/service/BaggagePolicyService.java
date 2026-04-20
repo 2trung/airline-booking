@@ -7,17 +7,13 @@ import java.util.List;
 
 public interface BaggagePolicyService {
 
-    BaggagePolicyResponse createBaggagePolicy(BaggagePolicyRequest baggagePolicyRequest);
-
-    BaggagePolicyResponse getBaggagePolicyById(Long baggagePolicyId);
-
+    BaggagePolicyResponse createBaggagePolicy(BaggagePolicyRequest request);
+    List<BaggagePolicyResponse> createBaggagePolicies(List<BaggagePolicyRequest> requests);
+    BaggagePolicyResponse getBaggagePolicyById(Long id);
     BaggagePolicyResponse getBaggagePolicyByFareId(Long fareId);
-
     List<BaggagePolicyResponse> getBaggagePoliciesByAirlineId(Long airlineId);
-
-    BaggagePolicyResponse updateBaggagePolicy(Long baggagePolicyId, BaggagePolicyRequest baggagePolicyRequest);
-
-    void deleteBaggagePolicy(Long baggagePolicyId);
+    BaggagePolicyResponse updateBaggagePolicy(Long id, BaggagePolicyRequest request);
+    void deleteBaggagePolicy(Long id);
 
 }
 

@@ -4,7 +4,7 @@ import com.airline.dto.response.PaymentLinkResponse;
 import com.airline.dto.response.UserResponse;
 import com.airline.entity.Payment;
 import com.airline.enums.PaymentStatus;
-import com.airline.exception.BadRequestException;
+import com.airline.exception.PaymentException;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentLink;
@@ -30,7 +30,7 @@ public class StripeService {
     @Value("${stripe.callback.url}")
     private String CALLBACK_URL;
 
-    public PaymentLinkResponse createPaymentLink(UserResponse user, Payment payment) {
+    public PaymentLinkResponse createPaymentLink(UserResponse user, Payment payment) throws PaymentException {
         validateCreateLinkRequest(user, payment);
 
         StripeClient stripeClient = new StripeClient(STRIPE_SECRET_KEY);
@@ -76,30 +76,29 @@ public class StripeService {
             PaymentLink stripePaymentLink = stripeClient.v1().paymentLinks().create(requestBuilder.build());
 
             return PaymentLinkResponse.builder()
-                    .id(payment.getId())
-                    .providerPaymentId(stripePaymentLink.getId())
-                    .checkOutUrl(stripePaymentLink.getUrl())
+                    .paymentId(stripePaymentLink.getId())
+                    .paymentUrl(stripePaymentLink.getUrl())
                     .build();
         } catch (StripeException ex) {
-            throw new BadRequestException("Unable to create Stripe payment link: " + ex.getMessage());
+            throw new PaymentException("Unable to create Stripe payment link: " + ex.getMessage());
         }
     }
 
-    private void validateCreateLinkRequest(UserResponse user, Payment payment) {
+    private void validateCreateLinkRequest(UserResponse user, Payment payment) throws PaymentException {
         if (!StringUtils.hasText(STRIPE_SECRET_KEY)) {
-            throw new BadRequestException("Stripe secret key is not configured");
+            throw new PaymentException("Stripe secret key is not configured");
         }
         if (user == null) {
-            throw new BadRequestException("User details are required to create payment link");
+            throw new PaymentException("User details are required to create payment link");
         }
         if (payment == null) {
-            throw new BadRequestException("Payment details are required to create payment link");
+            throw new PaymentException("Payment details are required to create payment link");
         }
         if (!StringUtils.hasText(user.getEmail())) {
-            throw new BadRequestException("User email is required to create payment link");
+            throw new PaymentException("User email is required to create payment link");
         }
         if (payment.getAmount() == null || payment.getAmount() <= 0) {
-            throw new BadRequestException("Payment amount must be greater than 0");
+            throw new PaymentException("Payment amount must be greater than 0");
         }
     }
 
@@ -110,12 +109,12 @@ public class StripeService {
                 .longValueExact();
     }
 
-    public PaymentStatus verifyPayment(String stripePaymentIntentId) {
+    public PaymentStatus verifyPayment(String stripePaymentIntentId) throws PaymentException {
         if (!StringUtils.hasText(STRIPE_SECRET_KEY)) {
-            throw new BadRequestException("Stripe secret key is not configured");
+            throw new PaymentException("Stripe secret key is not configured");
         }
         if (!StringUtils.hasText(stripePaymentIntentId)) {
-            throw new BadRequestException("stripePaymentIntentId is required");
+            throw new PaymentException("stripePaymentIntentId is required");
         }
 
         StripeClient stripeClient = new StripeClient(STRIPE_SECRET_KEY);
@@ -123,7 +122,7 @@ public class StripeService {
             PaymentIntent paymentIntent = stripeClient.v1().paymentIntents().retrieve(stripePaymentIntentId);
             return mapStripeStatus(paymentIntent.getStatus());
         } catch (StripeException ex) {
-            throw new BadRequestException("Unable to verify Stripe payment: " + ex.getMessage());
+            throw new PaymentException("Unable to verify Stripe payment: " + ex.getMessage());
         }
     }
 

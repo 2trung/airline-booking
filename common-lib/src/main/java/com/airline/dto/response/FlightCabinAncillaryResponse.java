@@ -7,24 +7,18 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class FlightCabinAncillaryResponse {
     Long id;
-
     Long flightId;
-
     Long cabinClassId;
-
     AncillaryResponse ancillary;
-
     Boolean available;
-
     Integer maxQuantity;
-
     Double price;
-
+    String currency;
     Boolean includedInFare;
 }

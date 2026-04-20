@@ -1,0 +1,42 @@
+package com.airline.dto.response;
+
+import com.airline.enums.PaymentGateway;
+import com.airline.enums.PaymentStatus;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
+
+import java.time.LocalDateTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
+public class PaymentDTO {
+
+    Long id;
+    Long userId;
+    String userName;
+    String userEmail;
+    Long bookingId;
+    PaymentStatus status;
+    PaymentGateway gateway;
+    Long amount;
+    String transactionId;
+    String gatewayPaymentId;
+    String gatewayOrderId;
+    String gatewaySignature;
+    String paymentMethod;
+    String description;
+    String failureReason;
+    Integer retryCount;
+    LocalDateTime initiatedAt;
+    LocalDateTime completedAt;
+    Boolean notificationSent;
+    Boolean active;
+    LocalDateTime createdAt;
+    LocalDateTime updatedAt;
+}

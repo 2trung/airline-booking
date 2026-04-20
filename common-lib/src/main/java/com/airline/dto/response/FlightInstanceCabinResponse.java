@@ -11,25 +11,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class FlightInstanceCabinResponse {
     Long id;
     Long flightInstanceId;
-
     CabinClassType cabinClassType;
     CabinClassResponse cabinClass;
-
+    @Builder.Default
     List<SeatInstanceResponse> seats = new ArrayList<>();
-    SeatMapResponse seatMap;
-
+    @Builder.Default
+    SeatMapResponse seatMap = new SeatMapResponse();
     Integer totalSeats;
     Integer bookedSeats;
     Integer availableSeats;
-
     Boolean isActive;
     Boolean canBook;
-
 }

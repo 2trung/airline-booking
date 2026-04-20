@@ -5,15 +5,17 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class UserRegisterRequest {
-    private String email;
-    private String password;
-    private String fullName;
-    private String phone;
-    private UserRole role;
+    String email;
+    String password;
+    String fullName;
+    String phone;
+    UserRole role;
 }

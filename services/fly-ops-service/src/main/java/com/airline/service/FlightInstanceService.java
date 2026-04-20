@@ -2,20 +2,27 @@ package com.airline.service;
 
 import com.airline.dto.request.FlightInstanceRequest;
 import com.airline.dto.response.FlightInstanceResponse;
+import com.airline.exception.AirportException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+
 public interface FlightInstanceService {
 
-    FlightInstanceResponse createFlightInstance(FlightInstanceRequest flightInstanceRequest);
+    FlightInstanceResponse createFlightInstanceWithCabins(Long userId, FlightInstanceRequest request) throws Exception;
 
-    FlightInstanceResponse getFlightInstanceById(Long id);
+    List<FlightInstanceResponse> getFlightInstances();
 
-    FlightInstanceResponse updateFlightInstance(Long id, FlightInstanceRequest flightInstanceRequest);
+    FlightInstanceResponse getFlightInstanceById(Long id) throws AirportException;
+
+    Page<FlightInstanceResponse> getByAirlineId(Long airlineId, Long departureAirportId, Long arrivalAirportId, Long flightId, LocalDate onDate, Pageable pageable);
+
+    FlightInstanceResponse updateFlightInstance(Long id, FlightInstanceRequest request) throws AirportException;
 
     void deleteFlightInstance(Long id);
 
-    Page<FlightInstanceResponse> getByAirlineId(Long airlineId, Long departureAirportId, Long arrivalAirportId,
-                                                Long flightId,
-                                                String departureTime, Long onDate, Pageable pageable);
+    Map<Long, FlightInstanceResponse> getFlightInstancesByIds(List<Long> ids);
 }

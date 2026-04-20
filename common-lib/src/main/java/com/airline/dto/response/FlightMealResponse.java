@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class FlightMealResponse {
     Long id;
@@ -17,6 +17,10 @@ public class FlightMealResponse {
     MealResponse meal;
     Boolean available;
     Double price;
+    String currency;
+    Integer maxQuantity;
+    String serviceClassRestriction;
     Integer displayOrder;
+    Boolean complimentary;
     String notes;
 }

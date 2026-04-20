@@ -8,27 +8,29 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class FlightRequest {
-    @NotBlank(message = "Flight number is required")
-    @Size(max = 10, message = "Flight number must be at most 10 characters")
-    private String flightNumber;
 
-    @NotNull(message = "Airline ID is required")
-    private Long airlineId;
+    @NotBlank(message = "Flight number is required")
+    @Size(max = 10)
+    String flightNumber;
+
+    Long airlineId;
 
     @NotNull(message = "Aircraft ID is required")
-    private Long aircraftId;
+    Long aircraftId;
 
     @NotNull(message = "Departure airport ID is required")
-    private Long departureAirportId;
+    Long departureAirportId;
 
     @NotNull(message = "Arrival airport ID is required")
-    private Long arrivalAirportId;
+    Long arrivalAirportId;
 
-    private FlightStatus status;
+    FlightStatus status;
 }

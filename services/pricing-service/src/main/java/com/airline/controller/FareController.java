@@ -22,63 +22,99 @@ public class FareController {
     private final FareService fareService;
 
     @PostMapping
-    public ResponseEntity<FareResponse> createFare(@Valid @RequestBody FareRequest fareRequest) {
-        log.info("REST request to create fare for flight: {}", fareRequest.getFlightId());
-        FareResponse fareResponse = fareService.createFare(fareRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(fareResponse);
+    public ResponseEntity<FareResponse> createFare(
+            @Valid @RequestBody FareRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(fareService.createFare(request));
     }
 
-    @GetMapping("/{fareId}")
-    public ResponseEntity<FareResponse> getFareById(@PathVariable Long fareId) {
-        log.info("REST request to get fare by ID: {}", fareId);
-        FareResponse fareResponse = fareService.getFareById(fareId);
-        return ResponseEntity.ok(fareResponse);
+    @PostMapping("/bulk")
+    public ResponseEntity<List<FareResponse>> createFares(
+            @Valid @RequestBody List<FareRequest> requests) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(fareService.createFares(requests));
     }
 
     @GetMapping
-    public ResponseEntity<List<FareResponse>> getFares(
-            @RequestParam(required = false) Long flightId,
-            @RequestParam(required = false) Long cabinClassId) {
-        log.info("REST request to get fares with flightId: {}, cabinClassId: {}", flightId, cabinClassId);
-
-        if (flightId != null && cabinClassId != null) {
-            List<FareResponse> fares = fareService.getFaresByFlightIdAndCabinClassId(flightId, cabinClassId);
-            return ResponseEntity.ok(fares);
-        }
-
-        List<FareResponse> allFares = fareService.getFares();
-        return ResponseEntity.ok(allFares);
+    public ResponseEntity<?> getFares() {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(fareService.getFares());
     }
 
-    @PutMapping("/{fareId}")
+    @GetMapping("/{id}")
+    public ResponseEntity<FareResponse> getFareById(@PathVariable Long id) {
+        return ResponseEntity.ok(fareService.getFareById(id));
+    }
+
+//    @GetMapping("/{id}/details")
+//    public ResponseEntity<FareResponse> getFareByIdWithDetails(@PathVariable Long id) {
+//        return ResponseEntity.ok(fareService.getFareByIdWithDetails(id));
+//    }
+//
+//    @GetMapping("/flight/{flightId}")
+//    public ResponseEntity<List<FareResponse>> getFaresByFlightId(
+//            @PathVariable Long flightId) {
+//        return ResponseEntity.ok(fareService.getFaresByFlightId(flightId));
+//    }
+
+
+//    @GetMapping("/flight/{flightId}/details")
+//    public ResponseEntity<List<FareResponse>> getFaresByFlightIdWithDetails(
+//            @PathVariable Long flightId) {
+//        return ResponseEntity.ok(fareService.getFaresByFlightIdWithDetails(flightId));
+//    }
+
+    @GetMapping("/flight/{flightId}/cabin-class/{cabinClassId}")
+    public ResponseEntity<List<FareResponse>> getFaresByFlightAndCabinClass(
+            @PathVariable Long flightId,
+            @PathVariable Long cabinClassId) {
+        return ResponseEntity.ok(fareService.getFaresByFlightIdAndCabinClassId(flightId, cabinClassId));
+    }
+
+    @PutMapping("/{id}")
     public ResponseEntity<FareResponse> updateFare(
-            @PathVariable Long fareId,
-            @Valid @RequestBody FareRequest fareRequest) {
-        log.info("REST request to update fare with ID: {}", fareId);
-        FareResponse fareResponse = fareService.updateFare(fareId, fareRequest);
-        return ResponseEntity.ok(fareResponse);
+            @PathVariable Long id,
+            @Valid @RequestBody FareRequest request) {
+        return ResponseEntity.ok(fareService.updateFare(id, request));
     }
 
-    @DeleteMapping("/{fareId}")
-    public ResponseEntity<Void> deleteFare(@PathVariable Long fareId) {
-        log.info("REST request to delete fare with ID: {}", fareId);
-        fareService.deleteFare(fareId);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteFare(@PathVariable Long id) {
+        fareService.deleteFare(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/lowest")
-    public ResponseEntity<Map<Long, FareResponse>> getLowestFareByFlight(
-            @RequestParam List<Long> flightIds,
-            @RequestParam Long cabinClassId) {
-        log.info("REST request to get lowest fares for {} flights", flightIds.size());
-        Map<Long, FareResponse> lowestFares = fareService.getLowestFareByFlight(flightIds, cabinClassId);
-        return ResponseEntity.ok(lowestFares);
+    /**
+     * Returns the cheapest fare per flight for the requested cabin class.
+     * Called internally by flight-ops-service during flight search to support
+     * price range filtering across a page of results in a single batch call.
+     *
+     * <p>Request body: list of flight IDs (e.g. {@code [1, 2, 3]})<br>
+     * Query param: {@code cabinClass=ECONOMY}
+     *
+     * @return map of {@code flightId → cheapest FareResponse} for that cabin class;
+     * flights with no matching fare are absent from the map
+     */
+    @PostMapping("/batch-by-ids")
+    public ResponseEntity<Map<Long, FareResponse>> getFaresByIds(@RequestBody List<Long> ids) {
+        return ResponseEntity.ok(fareService.getFaresByIds(ids));
     }
 
-    @GetMapping("/batch")
-    public ResponseEntity<Map<Long, FareResponse>> getFaresByIds(@RequestParam List<Long> fareIds) {
-        log.info("REST request to get fares by IDs: {}", fareIds);
-        Map<Long, FareResponse> fares = fareService.getFaresByIds(fareIds);
-        return ResponseEntity.ok(fares);
+    @PostMapping("/search")
+    public ResponseEntity<Map<Long, FareResponse>> getLowestFarePerFlight(
+            @RequestBody List<Long> flightIds,
+            @RequestParam Long cabinClassId) {
+        Map<Long, FareResponse> res = fareService.getLowestFarePerFlight(flightIds, cabinClassId);
+        System.out.println("search fare response ------ " + res.toString());
+        return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/lowest/flight/{flightId}/cabin-class/{cabinClassId}")
+    public ResponseEntity<FareResponse> getLowestFareForFlightAndCabinClass(
+            @PathVariable Long flightId,
+            @PathVariable Long cabinClassId) {
+        return ResponseEntity.ok(
+                fareService.getLowestFareForFlightAndCabin(flightId, cabinClassId)
+        );
     }
 }

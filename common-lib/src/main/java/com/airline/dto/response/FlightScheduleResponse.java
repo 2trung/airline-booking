@@ -1,34 +1,41 @@
 package com.airline.dto.response;
 
+import com.airline.enums.RecurrenceType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.time.DayOfWeek;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Set;
+import java.time.LocalTime;
+import java.util.List;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class FlightScheduleResponse {
-    private Long id;
-    private Long flightId;
-    private String flightNumber;
 
-    private AirportResponse departureAirport;
-    private AirportResponse arrivalAirport;
+    Long id;
 
-    private Instant departureTime;
-    private Instant arrivalTime;
+    Long flightId;
+    String flightNumber;
 
-    private LocalDate startDate;
-    private LocalDate endDate;
+    AirportResponse departureAirport;
+    AirportResponse arrivalAirport;
 
-    private Set<DayOfWeek> operatingDays;
+    LocalTime departureTime;
+    LocalTime arrivalTime;
 
-    private Boolean isActive;
+    LocalDate startDate;
+    LocalDate endDate;
+
+    RecurrenceType recurrenceType;
+    List<DayOfWeek> operatingDays;
+
+    Boolean isActive;
+    Long version;
 }

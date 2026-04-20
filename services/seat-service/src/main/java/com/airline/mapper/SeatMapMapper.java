@@ -5,78 +5,80 @@ import com.airline.dto.response.SeatMapResponse;
 import com.airline.entity.CabinClass;
 import com.airline.entity.Seat;
 import com.airline.entity.SeatMap;
-import com.airline.enums.SeatType;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SeatMapMapper {
 
-    private SeatMapMapper() {
-    }
-
-    public static SeatMap toEntity(SeatMapRequest request, CabinClass cabinClass) {
-        if (request == null) {
-            return null;
-        }
-
+    public static SeatMap toEntity(SeatMapRequest request,
+                                   CabinClass cabinClass) {
         return SeatMap.builder()
                 .name(request.getName())
                 .totalRows(request.getTotalRows())
                 .leftSeatsPerRow(request.getLeftSeatsPerRow())
                 .rightSeatsPerRow(request.getRightSeatsPerRow())
-                .airlineId(request.getAirlineId())
                 .cabinClass(cabinClass)
                 .build();
     }
 
-    public static void updateEntityFromRequest(SeatMap seatMap, SeatMapRequest request, CabinClass cabinClass) {
-        if (seatMap == null || request == null) {
-            return;
-        }
-
-        if (request.getName() != null) seatMap.setName(request.getName());
-        if (request.getTotalRows() != null) seatMap.setTotalRows(request.getTotalRows());
-        if (request.getLeftSeatsPerRow() != null) seatMap.setLeftSeatsPerRow(request.getLeftSeatsPerRow());
-        if (request.getRightSeatsPerRow() != null) seatMap.setRightSeatsPerRow(request.getRightSeatsPerRow());
-        if (request.getAirlineId() != null) seatMap.setAirlineId(request.getAirlineId());
-
-        seatMap.setCabinClass(cabinClass);
+    public static void updateEntity(SeatMapRequest request, SeatMap seatMap) {
+        seatMap.setName(request.getName());
+        seatMap.setTotalRows(request.getTotalRows());
+        seatMap.setLeftSeatsPerRow(request.getLeftSeatsPerRow());
+        seatMap.setRightSeatsPerRow(request.getRightSeatsPerRow());
     }
 
     public static SeatMapResponse toResponse(SeatMap seatMap) {
-        if (seatMap == null) {
-            return null;
-        }
         List<Seat> seats = seatMap.getSeats();
-        int totalSeats = seats.size();
-        int availableSeats = seats.stream().filter(seat -> seat.getIsAvailable() && seat.getIsActive() && !seat.getIsBlocked()).toList().size();
 
-        int windowSeats = seats.stream().filter(seat -> seat.getSeatType() == SeatType.WINDOW).toList().size();
-        int aisleSeats = seats.stream().filter(seat -> seat.getSeatType() == SeatType.AISLE).toList().size();
-        int middleSeats = seats.stream().filter(seat -> seat.getSeatType() == SeatType.MIDDLE).toList().size();
+        int totalSeats = seats != null ? seats.size() : 0;
+        int availableSeats = seats != null ? (int) seats.stream().filter(seat ->
+                Boolean.TRUE.equals(seat.getIsAvailable()) &&
+                        Boolean.TRUE.equals(seat.getIsActive()) &&
+                        !Boolean.TRUE.equals(seat.getIsBlocked())).count() : 0;
 
-        CabinClass cabinClass = seatMap.getCabinClass();
+        int windowSeats = seats != null ? (int) seats.stream().filter(seat ->
+                seat.getSeatType().name().contains("WINDOW")).count() : 0;
+        int aisleSeats = seats != null ? (int) seats.stream().filter(seat ->
+                seat.getSeatType().name().contains("AISLE")).count() : 0;
+        int middleSeats = seats != null ? (int) seats.stream().filter(seat ->
+                seat.getSeatType().name().contains("MIDDLE")).count() : 0;
+        int premiumSeats = seats != null ? (int) seats.stream().filter(seat ->
+                Boolean.TRUE.equals(seat.getHasExtraLegroom()) ||
+                        Boolean.TRUE.equals(seat.getIsEmergencyExit()) ||
+                        Boolean.TRUE.equals(seat.getHasExtraWidth())).count() : 0;
+        int emergencyExitSeats = seats != null ? (int) seats.stream().filter(seat ->
+                Boolean.TRUE.equals(seat.getIsEmergencyExit())).count() : 0;
 
         return SeatMapResponse.builder()
                 .id(seatMap.getId())
                 .name(seatMap.getName())
                 .totalRows(seatMap.getTotalRows())
-                .airlineId(seatMap.getAirlineId())
-                .cabinClassId(cabinClass != null ? cabinClass.getId() : null)
-                .cabinClassName(cabinClass != null && cabinClass.getName() != null ? cabinClass.getName().name() : null)
-                .cabinClassCode(cabinClass != null ? cabinClass.getCode() : null)
                 .leftSeatsPerRow(seatMap.getLeftSeatsPerRow())
                 .rightSeatsPerRow(seatMap.getRightSeatsPerRow())
+                .airlineId(seatMap.getAirlineId())
+                .cabinClassId(seatMap.getCabinClass() != null ? seatMap.getCabinClass().getId() : null)
+                .cabinClassName(seatMap.getCabinClass() != null ? seatMap.getCabinClass().getName().toString() : null)
+                .cabinClassCode(seatMap.getCabinClass() != null ? seatMap.getCabinClass().getCode() : null)
                 .totalSeats(totalSeats)
                 .availableSeats(availableSeats)
+                .occupiedSeats(totalSeats - availableSeats)
+                .seats(seats != null ? seats.stream().map(SeatMapper::toResponse)
+                        .collect(Collectors.toList()) : null)
                 .windowSeats(windowSeats)
                 .aisleSeats(aisleSeats)
                 .middleSeats(middleSeats)
+                .premiumSeats(premiumSeats)
+                .emergencyExitSeats(emergencyExitSeats)
                 .build();
     }
 
-
     public static SeatMapResponse toSimpleResponse(SeatMap seatMap) {
-        return SeatMapResponse.builder().id(seatMap.getId()).totalRows(seatMap.getTotalRows()).leftSeatsPerRow(seatMap.getLeftSeatsPerRow()).rightSeatsPerRow(seatMap.getRightSeatsPerRow()).build();
+        return SeatMapResponse.builder()
+                .totalRows(seatMap.getTotalRows())
+                .leftSeatsPerRow(seatMap.getLeftSeatsPerRow())
+                .rightSeatsPerRow(seatMap.getRightSeatsPerRow())
+                .build();
     }
 }

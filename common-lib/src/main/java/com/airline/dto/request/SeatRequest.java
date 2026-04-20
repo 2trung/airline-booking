@@ -3,6 +3,8 @@ package com.airline.dto.request;
 import com.airline.enums.SeatType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,17 +12,20 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class SeatRequest {
 
     @NotBlank(message = "Seat number is required")
+    @Size(min = 2, max = 10)
     String seatNumber;
 
     @NotNull(message = "Seat row is required")
+    @Positive
     Integer seatRow;
+
     Character columnLetter;
 
     @NotNull(message = "Seat type is required")
@@ -32,14 +37,21 @@ public class SeatRequest {
     Long cabinClassId;
 
     Boolean isAvailable;
-    Boolean isActive;
     Boolean isBlocked;
     Boolean isEmergencyExit;
+    Boolean isActive;
 
-    Boolean hasExtraLegRoom = false;
-    Boolean hasPowerOutlet = false;
-    Boolean hasTvScreen = false;
-    Boolean hasExtraWidth = false;
+    Double basePrice;
+    Double premiumSurcharge;
+
+    Boolean hasExtraLegroom;
+    Boolean hasBassinet;
+    Boolean isNearLavatory;
+    Boolean isNearGalley;
+    Boolean hasPowerOutlet;
+    Boolean hasTvScreen;
+    Boolean isWheelchairAccessible;
+    Boolean hasExtraWidth;
 
     Integer seatPitch;
     Integer seatWidth;

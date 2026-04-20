@@ -11,6 +11,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class AircraftResponse {

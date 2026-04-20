@@ -7,46 +7,41 @@ import com.airline.entity.InsuranceCoverage;
 
 public class InsuranceCoverageMapper {
 
-    public static InsuranceCoverageResponse toResponse(InsuranceCoverage insuranceCoverage) {
-
-        if (insuranceCoverage == null) {
+    public static InsuranceCoverageResponse toResponse(InsuranceCoverage entity) {
+        if (entity == null) {
             return null;
         }
 
-
-        return InsuranceCoverageResponse
-                .builder()
-                .id(insuranceCoverage.getId())
-                .ancillaryId(insuranceCoverage.getAncillary().getId())
-                .ancillaryName(insuranceCoverage.getAncillary().getName())
-                .coverageType(insuranceCoverage.getCoverageType())
-                .name(insuranceCoverage.getName())
-                .description(insuranceCoverage.getDescription())
-                .coverageAmount(insuranceCoverage.getCoverageAmount())
-                .isFlat(insuranceCoverage.getIsFlat())
-                .claimCondition(insuranceCoverage.getClaimCondition())
-                .emergencyContact(insuranceCoverage.getEmergencyContact())
-                .displayOrder(insuranceCoverage.getDisplayOrder())
-                .active(insuranceCoverage.getActive())
+        return InsuranceCoverageResponse.builder()
+                .id(entity.getId())
+                .ancillaryId(entity.getAncillary() != null ? entity.getAncillary().getId() : null)
+                .ancillaryName(entity.getAncillary() != null ? entity.getAncillary().getName() : null)
+                .coverageType(entity.getCoverageType())
+                .name(entity.getName())
+                .description(entity.getDescription())
+                .coverageAmount(entity.getCoverageAmount())
+                .currency(entity.getCurrency())
+                .isFlat(entity.isFlat())
+                .claimCondition(entity.getClaimCondition())
+                .emergencyContact(entity.getEmergencyContact())
+                .displayOrder(entity.getDisplayOrder())
+                .active(entity.isActive())
                 .build();
     }
 
-
     public static InsuranceCoverage toEntity(InsuranceCoverageRequest request, Ancillary ancillary) {
-
         if (request == null) {
             return null;
         }
 
-        return InsuranceCoverage
-                .builder()
+        return InsuranceCoverage.builder()
                 .ancillary(ancillary)
                 .coverageType(request.getCoverageType())
                 .name(request.getName())
                 .description(request.getDescription())
                 .coverageAmount(request.getCoverageAmount())
+                .currency(request.getCurrency() != null ? request.getCurrency() : "INR")
                 .isFlat(request.getIsFlat() != null ? request.getIsFlat() : true)
-                .claimCondition(request.getClaimCondition())
                 .claimCondition(request.getClaimCondition())
                 .emergencyContact(request.getEmergencyContact())
                 .displayOrder(request.getDisplayOrder())
@@ -54,11 +49,12 @@ public class InsuranceCoverageMapper {
                 .build();
     }
 
-    public static void updateEntityFromRequest(InsuranceCoverage entity, InsuranceCoverageRequest request, Ancillary ancillary) {
+    public static void updateEntityFromRequest(InsuranceCoverage entity,
+                                               InsuranceCoverageRequest request,
+                                               Ancillary ancillary) {
         if (entity == null || request == null) {
             return;
         }
-
         if (ancillary != null) {
             entity.setAncillary(ancillary);
         }
@@ -74,8 +70,11 @@ public class InsuranceCoverageMapper {
         if (request.getCoverageAmount() != null) {
             entity.setCoverageAmount(request.getCoverageAmount());
         }
+        if (request.getCurrency() != null) {
+            entity.setCurrency(request.getCurrency());
+        }
         if (request.getIsFlat() != null) {
-            entity.setIsFlat(request.getIsFlat());
+            entity.setFlat(request.getIsFlat());
         }
         if (request.getClaimCondition() != null) {
             entity.setClaimCondition(request.getClaimCondition());

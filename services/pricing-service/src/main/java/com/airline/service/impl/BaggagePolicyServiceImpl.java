@@ -8,12 +8,15 @@ import com.airline.mapper.BaggagePolicyMapper;
 import com.airline.repository.BaggagePolicyRepository;
 import com.airline.repository.FareRepository;
 import com.airline.service.BaggagePolicyService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,84 +26,92 @@ public class BaggagePolicyServiceImpl implements BaggagePolicyService {
 
     private final BaggagePolicyRepository baggagePolicyRepository;
     private final FareRepository fareRepository;
-    private final BaggagePolicyMapper baggagePolicyMapper;
 
     @Override
-    @Transactional
-    public BaggagePolicyResponse createBaggagePolicy(BaggagePolicyRequest baggagePolicyRequest) {
-        log.info("Creating baggage policy: {}", baggagePolicyRequest.getName());
+    public BaggagePolicyResponse createBaggagePolicy(BaggagePolicyRequest request) {
+        Fare fare = fareRepository.findById(request.getFareId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Fare not found with id: " + request.getFareId()));
 
-        Fare fare = fareRepository.findById(baggagePolicyRequest.getFareId())
-                .orElseThrow(() -> new RuntimeException("Fare not found with id: " + baggagePolicyRequest.getFareId()));
-
-        if (baggagePolicyRepository.existsByFare_Id(baggagePolicyRequest.getFareId())) {
-            throw new RuntimeException("Baggage policy already exists for fare id: " + baggagePolicyRequest.getFareId());
+        if (baggagePolicyRepository.existsByFareId(request.getFareId())) {
+            throw new IllegalArgumentException(
+                    "Baggage policy already exists for fare id: " + request.getFareId());
         }
+        BaggagePolicy policy = BaggagePolicyMapper.toEntity(request, fare);
+        BaggagePolicy saved = baggagePolicyRepository.save(policy);
+        return BaggagePolicyMapper.toResponse(saved);
+    }
 
-        BaggagePolicy baggagePolicy = baggagePolicyMapper.toEntity(baggagePolicyRequest, fare);
-        BaggagePolicy saved = baggagePolicyRepository.save(baggagePolicy);
+    @Override
+    public List<BaggagePolicyResponse> createBaggagePolicies(List<BaggagePolicyRequest> requests) {
+        List<Long> fareIds = requests.stream()
+                .map(BaggagePolicyRequest::getFareId)
+                .collect(Collectors.toList());
 
-        log.info("Baggage policy created successfully with id: {}", saved.getId());
-        return baggagePolicyMapper.toResponse(saved);
+        // Batch-fetch all required Fare entities; throw if any are missing
+        Map<Long, Fare> fareMap = fareRepository.findAllById(fareIds).stream()
+                .collect(Collectors.toMap(Fare::getId, fare -> fare));
+        fareIds.forEach(fareId -> {
+            if (!fareMap.containsKey(fareId)) {
+                throw new EntityNotFoundException("Fare not found with id: " + fareId);
+            }
+        });
+
+        // Single DB call to find fareIds that already have a policy
+        Set<Long> alreadyHasPolicy = baggagePolicyRepository.findFareIdsWithExistingPolicy(fareIds);
+
+        List<BaggagePolicy> toSave = requests.stream()
+                .filter(req -> !alreadyHasPolicy.contains(req.getFareId()))
+                .map(req -> BaggagePolicyMapper.toEntity(req, fareMap.get(req.getFareId())))
+                .collect(Collectors.toList());
+
+        return baggagePolicyRepository.saveAll(toSave).stream()
+                .map(BaggagePolicyMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public BaggagePolicyResponse getBaggagePolicyById(Long baggagePolicyId) {
-        log.info("Fetching baggage policy by id: {}", baggagePolicyId);
-
-        BaggagePolicy baggagePolicy = baggagePolicyRepository.findById(baggagePolicyId)
-                .orElseThrow(() -> new RuntimeException("Baggage policy not found with id: " + baggagePolicyId));
-
-        return baggagePolicyMapper.toResponse(baggagePolicy);
+    public BaggagePolicyResponse getBaggagePolicyById(Long id) {
+        BaggagePolicy policy = baggagePolicyRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Baggage policy not found with id: " + id));
+        return BaggagePolicyMapper.toResponse(policy);
     }
 
     @Override
     @Transactional(readOnly = true)
     public BaggagePolicyResponse getBaggagePolicyByFareId(Long fareId) {
-        log.info("Fetching baggage policy by fare id: {}", fareId);
-
-        BaggagePolicy baggagePolicy = baggagePolicyRepository.findByFare_Id(fareId)
-                .orElseThrow(() -> new RuntimeException("Baggage policy not found for fare id: " + fareId));
-
-        return baggagePolicyMapper.toResponse(baggagePolicy);
+        BaggagePolicy policy = baggagePolicyRepository.findByFareId(fareId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Baggage policy not found for fare id: " + fareId));
+        return BaggagePolicyMapper.toResponse(policy);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<BaggagePolicyResponse> getBaggagePoliciesByAirlineId(Long airlineId) {
-        log.info("Fetching baggage policies by airline id: {}", airlineId);
-
         return baggagePolicyRepository.findByAirlineId(airlineId).stream()
-                .map(baggagePolicyMapper::toResponse)
+                .map(BaggagePolicyMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
-    @Transactional
-    public BaggagePolicyResponse updateBaggagePolicy(Long baggagePolicyId, BaggagePolicyRequest baggagePolicyRequest) {
-        log.info("Updating baggage policy with id: {}", baggagePolicyId);
+    public BaggagePolicyResponse updateBaggagePolicy(Long id, BaggagePolicyRequest request) {
+        BaggagePolicy existing = baggagePolicyRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Baggage policy not found with id: " + id));
 
-        BaggagePolicy baggagePolicy = baggagePolicyRepository.findById(baggagePolicyId)
-                .orElseThrow(() -> new RuntimeException("Baggage policy not found with id: " + baggagePolicyId));
-
-        baggagePolicyMapper.updateEntity(baggagePolicy, baggagePolicyRequest);
-        BaggagePolicy updated = baggagePolicyRepository.save(baggagePolicy);
-
-        log.info("Baggage policy updated successfully with id: {}", updated.getId());
-        return baggagePolicyMapper.toResponse(updated);
+        BaggagePolicyMapper.updateEntity(request, existing);
+        BaggagePolicy saved = baggagePolicyRepository.save(existing);
+        return BaggagePolicyMapper.toResponse(saved);
     }
 
     @Override
-    @Transactional
-    public void deleteBaggagePolicy(Long baggagePolicyId) {
-        log.info("Deleting baggage policy with id: {}", baggagePolicyId);
-
-        if (!baggagePolicyRepository.existsById(baggagePolicyId)) {
-            throw new RuntimeException("Baggage policy not found with id: " + baggagePolicyId);
-        }
-
-        baggagePolicyRepository.deleteById(baggagePolicyId);
-        log.info("Baggage policy deleted successfully with id: {}", baggagePolicyId);
+    public void deleteBaggagePolicy(Long id) {
+        BaggagePolicy policy = baggagePolicyRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Baggage policy not found with id: " + id));
+        baggagePolicyRepository.delete(policy);
     }
 }

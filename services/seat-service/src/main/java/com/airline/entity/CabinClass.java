@@ -2,9 +2,12 @@ package com.airline.entity;
 
 import com.airline.enums.CabinClassType;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 
@@ -14,44 +17,50 @@ import java.time.Instant;
 @AllArgsConstructor
 @Builder
 @Entity
+@EntityListeners(AuditingEntityListener.class)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class CabinClass {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private CabinClassType name;
+    CabinClassType name;
 
-    @Column(nullable = false)
-    private String code;
+    @Size(max = 5)
+    @Column(nullable = false, length = 5)
+    String code;
 
-    private String description;
+    @Size(max = 255)
+    String description;
 
     @OneToOne(mappedBy = "cabinClass", cascade = CascadeType.ALL, orphanRemoval = true)
-    private SeatMap seatMap;
+    SeatMap seatMap;
+
+    @Column()
+    Long aircraftId;
 
     @Column(nullable = false)
-    private Long airCraftId;
+    Integer displayOrder = 0;
 
+    @Builder.Default
     @Column(nullable = false)
-    private Integer displayOrder = 0;
+    Boolean isActive = true;
 
+    @Builder.Default
     @Column(nullable = false)
-    private Boolean isActive = true;
+    Boolean isBookable = true;
 
-    @Column(nullable = false)
-    private Boolean isBookable = true;
-
-    private Integer typicalSeatPitch;
-    private Integer typicalSeatWidth;
-    private String seatType;
+    Integer typicalSeatPitch;
+    Integer typicalSeatWidth;
+    String seatType;
 
     @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt;
+    @Column(updatable = false, nullable = false)
+    Instant createdAt;
 
     @LastModifiedDate
     @Column(nullable = false)
-    private Instant updatedAt;
+    Instant updatedAt;
 }

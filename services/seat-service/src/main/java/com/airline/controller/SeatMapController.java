@@ -5,19 +5,32 @@ import com.airline.dto.response.SeatMapResponse;
 import com.airline.service.SeatMapService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/seat-maps")
 public class SeatMapController {
-
     private final SeatMapService seatMapService;
 
     @PostMapping
-    public ResponseEntity<SeatMapResponse> createSeatMap(@Valid @RequestBody SeatMapRequest seatMapRequest) {
-        return ResponseEntity.ok(seatMapService.createSeatMap(seatMapRequest));
+    public ResponseEntity<SeatMapResponse> createSeatMap(
+            @RequestHeader("X-User-Id") Long userId,
+            @Valid @RequestBody SeatMapRequest request) throws Exception {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(seatMapService.createSeatMap(userId, request));
+    }
+
+    @PostMapping("/create/bulk")
+    public ResponseEntity<List<SeatMapResponse>> createSeatMaps(
+            @RequestHeader("X-User-Id") Long userId,
+            @Valid @RequestBody List<SeatMapRequest> requests) throws Exception {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(seatMapService.createSeatMaps(userId, requests));
     }
 
     @GetMapping("/{id}")
@@ -25,23 +38,27 @@ public class SeatMapController {
         return ResponseEntity.ok(seatMapService.getSeatMapById(id));
     }
 
+
     @GetMapping("/cabin-class/{cabinClassId}")
-    public ResponseEntity<SeatMapResponse> getSeatMapByCabinClassId(@PathVariable Long cabinClassId) {
-        return ResponseEntity.ok(seatMapService.getSeatMapByCabinClassId(cabinClassId));
+    public ResponseEntity<SeatMapResponse> getSeatMapsByCabinClass(
+            @PathVariable Long cabinClassId) {
+        SeatMapResponse responses = seatMapService.getSeatMapsByCabinClass(cabinClassId);
+        return ResponseEntity.ok(responses);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<SeatMapResponse> updateSeatMap(
+            @RequestHeader("X-User-Id") Long userId,
             @PathVariable Long id,
-            @Valid @RequestBody SeatMapRequest seatMapRequest
-    ) {
-        return ResponseEntity.ok(seatMapService.updateSeatMap(id, seatMapRequest));
+            @Valid @RequestBody SeatMapRequest request) {
+        return ResponseEntity.ok(seatMapService.updateSeatMap(userId, id, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSeatMap(@PathVariable Long id) {
+    public ResponseEntity<?> deleteSeatMap(@PathVariable Long id) throws Exception {
         seatMapService.deleteSeatMap(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Seat map deleted");
     }
+
 }
 

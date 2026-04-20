@@ -1,16 +1,21 @@
 package com.airline.service.impl;
 
+import com.airline.client.UserClient;
 import com.airline.dto.PaymentDTO;
 import com.airline.dto.request.PaymentInitiateRequest;
 import com.airline.dto.request.PaymentVerifyRequest;
 import com.airline.dto.response.PaymentInitiateResponse;
+import com.airline.dto.response.PaymentLinkResponse;
+import com.airline.dto.response.UserResponse;
 import com.airline.entity.Payment;
 import com.airline.enums.PaymentGateway;
 import com.airline.enums.PaymentStatus;
-import com.airline.exception.BadRequestException;
+import com.airline.exception.PaymentException;
+import com.airline.exception.UserException;
 import com.airline.mapper.PaymentMapper;
 import com.airline.repository.PaymentRepository;
 import com.airline.service.PaymentService;
+import com.airline.service.gateway.StripeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -30,42 +35,49 @@ import java.util.UUID;
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final UserClient userClient;
+    private final StripeService stripeService;
 
     @Override
-    public PaymentInitiateResponse initiatePayment(PaymentInitiateRequest request) {
-        paymentRepository.findByBookingId(request.getBookingId()).ifPresent(existingPayment -> {
-            if (existingPayment.getStatus() == PaymentStatus.SUCCESS) {
-                throw new BadRequestException("A successful payment already exists for booking id: " + request.getBookingId());
-            }
-        });
+    public PaymentInitiateResponse initiatePayment(PaymentInitiateRequest request) throws UserException, PaymentException {
+        paymentRepository.findByBookingId(request.getBookingId())
+                .ifPresent(existingPayment -> {
+                    if (existingPayment.getStatus() == PaymentStatus.SUCCESS) {
+                        throw new RuntimeException("Payment already completed for this booking");
+                    }
+                });
 
-
-
+        // Create payment entity
         Payment payment = Payment.builder()
                 .userId(request.getUserId())
                 .bookingId(request.getBookingId())
                 .amount(request.getAmount())
-                .provider(request.getPaymentGateway())
-                .transactionId(generateTransactionId())
+                .provider(request.getGateway())
                 .status(PaymentStatus.PENDING)
+                .transactionId(generateTransactionId())
                 .build();
 
-        Payment savedPayment = paymentRepository.save(payment);
+        payment = paymentRepository.save(payment);
 
-        PaymentInitiateResponse response = PaymentInitiateResponse
-                .builder()
-                .paymentId(savedPayment.getId())
-                .gateway(savedPayment.getProvider())
-                .transactionId(savedPayment.getTransactionId())
-                .amount(savedPayment.getAmount())
+        // Create response based on gateway
+        PaymentInitiateResponse response = PaymentInitiateResponse.builder()
+                .paymentId(payment.getId())
+                .gateway(request.getGateway())
+                .transactionId(payment.getTransactionId())
+                .amount(request.getAmount())
                 .description(request.getDescription())
-                .success(Boolean.TRUE)
+                .success(true)
                 .message("Payment initiated successfully")
                 .build();
 
-        if (request.getPaymentGateway() == PaymentGateway.STRIPE) {
-            // todo: fetch user details from user service
-            // todo: implement stripe payment
+        if (request.getGateway() == PaymentGateway.STRIPE) {
+            UserResponse user = userClient.getUserById(payment.getUserId());
+
+            PaymentLinkResponse paymentLinkResponse = stripeService.createPaymentLink(
+                    user, payment
+            );
+            response.setPaymentId(payment.getId());
+            response.setCheckoutUrl(paymentLinkResponse.getPaymentUrl());
         }
         return response;
     }
@@ -78,7 +90,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional(readOnly = true)
     public Page<PaymentDTO> getAllPayments(Pageable pageable) {
-        return paymentRepository.findAll(pageable).map(PaymentMapper::toDto);
+        return paymentRepository.findAll(pageable).map(PaymentMapper::toDTO);
     }
 
     @Override
@@ -92,7 +104,7 @@ public class PaymentServiceImpl implements PaymentService {
         List<Payment> payments = paymentRepository.findByBookingIdInOrderByCreatedAtDesc(bookingIds);
 
         for (Payment payment : payments) {
-            paymentByBookingId.putIfAbsent(payment.getBookingId(), PaymentMapper.toDto(payment));
+            paymentByBookingId.putIfAbsent(payment.getBookingId(), PaymentMapper.toDTO(payment));
         }
 
         return paymentByBookingId;

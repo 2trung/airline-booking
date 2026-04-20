@@ -9,6 +9,7 @@ public class FlightMealMapper {
         if (flightMeal == null) {
             return null;
         }
+
         return FlightMealResponse.builder()
                 .id(flightMeal.getId())
                 .flightId(flightMeal.getFlightId())

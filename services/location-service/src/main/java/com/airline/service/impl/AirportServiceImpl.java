@@ -4,90 +4,153 @@ import com.airline.dto.request.AirportRequest;
 import com.airline.dto.response.AirportResponse;
 import com.airline.entity.Airport;
 import com.airline.entity.City;
+import com.airline.exception.AirportException;
+import com.airline.exception.CityException;
 import com.airline.mapper.AirportMapper;
 import com.airline.repository.AirportRepository;
 import com.airline.repository.CityRepository;
 import com.airline.service.AirportService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AirportServiceImpl implements AirportService {
     private final AirportRepository airportRepository;
     private final CityRepository cityRepository;
 
     @Override
-    public AirportResponse createAirport(AirportRequest airportRequest) throws Exception {
-        if (airportRepository.existsByIataCode(airportRequest.getIataCode())) {
-            throw new Exception("Airport with IATA code " + airportRequest.getIataCode() + " already exists.");
+    @Transactional
+    public AirportResponse createAirport(AirportRequest request) throws AirportException, CityException {
+        if (airportRepository.findByIataCode(request.getIataCode()).isPresent()) {
+            throw new AirportException("Airport with IATA code " + request.getIataCode() + " already exists.");
         }
 
-        City city = cityRepository.findById(airportRequest.getCityId())
-                .orElseThrow(() -> new Exception("City with id " + airportRequest.getCityId() + " not found."));
+        City city = cityRepository.findById(request.getCityId())
+                .orElseThrow(() -> new CityException("City not found with id: " + request.getCityId()));
 
-        Airport airport = AirportMapper.toEntity(airportRequest, city);
+        Airport airport = AirportMapper.toEntity(request);
+        airport.setCity(city);
+
         Airport savedAirport = airportRepository.save(airport);
         return AirportMapper.toResponse(savedAirport);
     }
 
     @Override
-    public AirportResponse getAirportById(Long id) throws Exception {
-        Airport airport = airportRepository.findById(id)
-                .orElseThrow(() -> new Exception("Airport with id " + id + " not found."));
-        return AirportMapper.toResponse(airport);
+    @Transactional
+    public List<AirportResponse> createBulkAirports(List<AirportRequest> requests) {
+        List<AirportResponse> createdAirports = new ArrayList<>();
+        List<String> skippedCodes = new ArrayList<>();
+
+        for (AirportRequest request : requests) {
+            if (airportRepository.findByIataCode(request.getIataCode()).isPresent()) {
+                skippedCodes.add(request.getIataCode() + " (already exists)");
+                continue;
+            }
+
+            Optional<City> cityOpt = cityRepository.findById(request.getCityId());
+            if (cityOpt.isEmpty()) {
+                skippedCodes.add(request.getIataCode() + " (city not found with id: " + request.getCityId() + ")");
+                continue;
+            }
+
+            Airport airport = AirportMapper.toEntity(request);
+            airport.setCity(cityOpt.get());
+
+            Airport savedAirport = airportRepository.save(airport);
+            createdAirports.add(AirportMapper.toResponse(savedAirport));
+        }
+
+        if (!skippedCodes.isEmpty()) {
+            log.info("Bulk airport creation - skipped: {}", skippedCodes);
+        }
+        log.info("Bulk airport creation - created {} out of {} airports", createdAirports.size(), requests.size());
+
+        return createdAirports;
     }
 
     @Override
-    public AirportResponse updateAirport(Long id, AirportRequest airportRequest) throws Exception {
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "airports", key = "#id")
+    public AirportResponse getAirportById(Long id) {
         Airport airport = airportRepository.findById(id)
-                .orElseThrow(() -> new Exception("Airport with id " + id + " not found."));
+                .orElseThrow(() -> new EntityNotFoundException("Airport not found with id: " + id));
+        return AirportMapper.toResponse(airport);
+    }
 
-        if (airportRequest.getIataCode() != null &&
-            airportRepository.existsByIataCodeAndIdNot(airportRequest.getIataCode(), id)) {
-            throw new Exception("Airport with IATA code " + airportRequest.getIataCode() + " already exists.");
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "allAirports")
+    public List<AirportResponse> getAllAirports() {
+        return airportRepository.findAll().stream()
+                .map(AirportMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "airports", key = "#id"),
+            @CacheEvict(cacheNames = "allAirports", allEntries = true),
+            @CacheEvict(cacheNames = "airportsByIata", allEntries = true),
+            @CacheEvict(cacheNames = "airportsByCity", allEntries = true)
+    })
+    public AirportResponse updateAirport(Long id, AirportRequest request) throws AirportException, CityException {
+        Airport existingAirport = airportRepository.findById(id)
+                .orElseThrow(() -> new AirportException("Airport not found with id: " + id));
+
+        if (request.getIataCode() != null
+                && !existingAirport.getIataCode().equals(request.getIataCode())
+                && airportRepository.findByIataCode(request.getIataCode()).isPresent()) {
+            throw new AirportException("IATA code " + request.getIataCode() + " is already taken.");
         }
 
-        City city = null;
-        if (airportRequest.getCityId() != null) {
-            city = cityRepository.findById(airportRequest.getCityId())
-                    .orElseThrow(() -> new Exception("City with id " + airportRequest.getCityId() + " not found."));
+        if (request.getCityId() != null) {
+            City newCity = cityRepository.findById(request.getCityId())
+                    .orElseThrow(() -> new CityException("City not found with id: " + request.getCityId()));
+            existingAirport.setCity(newCity);
         }
 
-        AirportMapper.updateEntityFromDto(airport, airportRequest, city);
-        Airport updatedAirport = airportRepository.save(airport);
+        AirportMapper.updateEntity(request, existingAirport);
+
+        Airport updatedAirport = airportRepository.save(existingAirport);
         return AirportMapper.toResponse(updatedAirport);
     }
 
     @Override
-    public void deleteAirport(Long id) throws Exception {
-        airportRepository.findById(id)
-                .orElseThrow(() -> new Exception("Airport with id " + id + " not found."));
-        airportRepository.deleteById(id);
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "airports", key = "#id"),
+            @CacheEvict(cacheNames = "allAirports", allEntries = true),
+            @CacheEvict(cacheNames = "airportsByIata", allEntries = true),
+            @CacheEvict(cacheNames = "airportsByCity", allEntries = true)
+    })
+    public void deleteAirport(Long id) throws AirportException {
+        Airport airport = airportRepository.findById(id)
+                .orElseThrow(() -> new AirportException("Airport not found with id: " + id));
+        airportRepository.delete(airport);
     }
 
     @Override
-    public Page<AirportResponse> getAllAirports(Pageable pageable) {
-        return airportRepository.findAll(pageable).map(AirportMapper::toResponse);
-    }
-
-    @Override
-    public Page<AirportResponse> searchAirports(String keyword, Pageable pageable) {
-        return airportRepository.searchByKeywordIgnoreCase(keyword, pageable).map(AirportMapper::toResponse);
-    }
-
-    @Override
-    public Page<AirportResponse> getAirportsByCity(Long cityId, Pageable pageable) throws Exception {
-        City city = cityRepository.findById(cityId)
-                .orElseThrow(() -> new Exception("City with id " + cityId + " not found."));
-        return airportRepository.findByCity(city, pageable).map(AirportMapper::toResponse);
-    }
-
-    @Override
-    public boolean existsByIataCode(String iataCode) {
-        return airportRepository.existsByIataCode(iataCode);
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "airportsByCity", key = "#cityId")
+    public List<AirportResponse> getAirportsByCityId(Long cityId) {
+        return airportRepository.findByCityId(cityId).stream()
+                .map(AirportMapper::toResponse)
+                .collect(Collectors.toList());
     }
 }
 

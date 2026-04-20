@@ -11,6 +11,8 @@ import com.airline.repository.AirlineRepository;
 import com.airline.service.AircraftService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +43,7 @@ public class AircraftServiceImpl implements AircraftService {
     }
 
     @Override
+    @Cacheable(cacheNames = "aircrafts", key = "#id")
     public AircraftResponse getAircraftById(Long id) throws ResourceNotFoundException {
         Aircraft aircraft = aircraftRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Aircraft not found with id: " + id));
@@ -58,6 +61,7 @@ public class AircraftServiceImpl implements AircraftService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "aircrafts", key = "#id")
     public AircraftResponse updateAircraft(Long id, AircraftRequest request, Long ownerId)
             throws ResourceNotFoundException {
         Airline airline = airlineRepository.findByOwnerId(ownerId)
@@ -78,6 +82,7 @@ public class AircraftServiceImpl implements AircraftService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "aircrafts", key = "#id")
     public void deleteAircraft(Long id) throws ResourceNotFoundException {
         Aircraft aircraft = aircraftRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Aircraft not found with id: " + id));

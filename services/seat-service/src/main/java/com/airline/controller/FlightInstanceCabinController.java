@@ -19,38 +19,40 @@ public class FlightInstanceCabinController {
 
     @PostMapping
     public ResponseEntity<FlightInstanceCabinResponse> createFlightInstanceCabin(
-            @Valid @RequestBody FlightInstanceCabinRequest flightInstanceCabinRequest
-    ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(flightInstanceCabinService.createFlightInstanceCabin(flightInstanceCabinRequest));
+            @Valid @RequestBody FlightInstanceCabinRequest request) throws Exception {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(flightInstanceCabinService.createFlightInstanceCabin(request));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<FlightInstanceCabinResponse> getFlightInstanceCabinById(@PathVariable Long id) {
+    public ResponseEntity<FlightInstanceCabinResponse> getFlightInstanceCabinById(
+            @PathVariable Long id) {
         return ResponseEntity.ok(flightInstanceCabinService.getFlightInstanceCabinById(id));
+    }
+
+    @GetMapping("/flight-instance/{flightInstanceId}/cabin-class/{cabinClassId}")
+    public ResponseEntity<?> getByFlightInstanceIdAndCabinClassId(
+            @PathVariable Long cabinClassId,
+            @PathVariable Long flightInstanceId) {
+        return ResponseEntity.ok(
+                flightInstanceCabinService.getByFlightInstanceIdAndCabinClassId(
+                        flightInstanceId,cabinClassId
+                ));
     }
 
     @GetMapping("/flight-instance/{flightInstanceId}")
     public ResponseEntity<Page<FlightInstanceCabinResponse>> getByFlightInstanceId(
-            @PathVariable Long flightInstanceId,
-            Pageable pageable
-    ) {
-        return ResponseEntity.ok(flightInstanceCabinService.getByFlightInstanceId(flightInstanceId, pageable));
-    }
-
-    @GetMapping("/flight-instance/{flightInstanceId}/cabin-class/{cabinClassId}")
-    public ResponseEntity<FlightInstanceCabinResponse> getByFlightInstanceIdAndCabinClassId(
-            @PathVariable Long flightInstanceId,
-            @PathVariable Long cabinClassId
-    ) {
-        return ResponseEntity.ok(flightInstanceCabinService.getByFlightInstanceIdAndCabinClassId(flightInstanceId, cabinClassId));
+            @PathVariable Long flightInstanceId, Pageable pageable) {
+        return ResponseEntity.ok(
+                flightInstanceCabinService.getByFlightInstanceId(flightInstanceId, pageable));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<FlightInstanceCabinResponse> updateFlightInstanceCabin(
             @PathVariable Long id,
-            @Valid @RequestBody FlightInstanceCabinRequest flightInstanceCabinRequest
-    ) {
-        return ResponseEntity.ok(flightInstanceCabinService.updateFlightInstanceCabin(id, flightInstanceCabinRequest));
+            @Valid @RequestBody FlightInstanceCabinRequest request) {
+        return ResponseEntity.ok(
+                flightInstanceCabinService.updateFlightInstanceCabin(id, request));
     }
 
     @DeleteMapping("/{id}")

@@ -7,35 +7,40 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class PassengerResponse {
+
     Long id;
-
     String firstName;
-
     String lastName;
     String email;
     String phone;
     LocalDate dateOfBirth;
     Gender gender;
 
+    String passportNumber;
     String nationality;
+    String frequentFlyerNumber;
 
     Long primaryUserId;
     String primaryUserName;
+
+    Boolean requiresWheelchairAssistance;
+    String dietaryPreferences;
+    String medicalConditions;
 
     Boolean isActive;
     Integer age;
     Boolean isAdult;
     String fullName;
 
-    Instant createdAt;
-    Instant updatedAt;
+    LocalDateTime createdAt;
+    LocalDateTime updatedAt;
 }

@@ -2,12 +2,15 @@ package com.airline.controller;
 
 import com.airline.dto.request.AncillaryRequest;
 import com.airline.dto.response.AncillaryResponse;
+import com.airline.exception.ResourceNotFoundException;
 import com.airline.service.AncillaryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -16,30 +19,29 @@ import org.springframework.web.bind.annotation.*;
 public class AncillaryController {
     private final AncillaryService ancillaryService;
 
-    @RequestMapping("/{id}")
-    public ResponseEntity<AncillaryResponse> getAncillaryById(Long id) throws Exception {
-        AncillaryResponse response = ancillaryService.getAncillaryById(id);
-        return ResponseEntity.ok(response);
+    @PostMapping
+    public ResponseEntity<AncillaryResponse> create(@Valid @RequestBody AncillaryRequest request, @RequestHeader("X-User-Id") Long userId) throws ResourceNotFoundException {
+        return ResponseEntity.ok(ancillaryService.create(userId, request));
     }
 
-    @PostMapping
-    public ResponseEntity<AncillaryResponse> createAncillary(@Valid @RequestBody AncillaryRequest ancillaryRequest,
-                                                             @RequestHeader("X-Airline-Id") Long airlineId) {
-        AncillaryResponse response = ancillaryService.createAncillary(airlineId, ancillaryRequest);
-        return ResponseEntity.ok(response);
+    @GetMapping("/{id}")
+    public ResponseEntity<AncillaryResponse> getById(@PathVariable Long id) throws ResourceNotFoundException {
+        return ResponseEntity.ok(ancillaryService.getById(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<AncillaryResponse>> getAllByAirlineId(@RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(ancillaryService.getAllByAirlineId(userId));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AncillaryResponse> updateAncillary(@PathVariable Long id,
-                                                             @RequestBody AncillaryRequest ancillaryRequest
-                                                             ) throws Exception {
-        AncillaryResponse response = ancillaryService.updateAncillary(id, ancillaryRequest);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<AncillaryResponse> update(@PathVariable Long id, @Valid @RequestBody AncillaryRequest request) throws ResourceNotFoundException {
+        return ResponseEntity.ok(ancillaryService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAncillary(@PathVariable Long id) throws Exception {
-        ancillaryService.deleteAncillary(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        ancillaryService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

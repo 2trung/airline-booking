@@ -2,6 +2,7 @@ package com.airline.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,31 +10,38 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class FlightInstanceCabinRequest {
-    @NotNull(message = "Cabin class type is required")
+
+    @NotNull
     Long flightId;
 
-    @NotNull(message = "Cabin class is required")
+    @NotNull(message = "Flight instance ID is required")
     Long flightInstanceId;
 
-    @NotNull(message = "Cabin class is required")
+    @NotNull
     Long cabinClassId;
 
-    @NotNull(message = "Base fare is required")
-    @Positive(message = "Base fare must be a positive value")
-    Double basFare;
+    @NotNull
+    @Positive
+    Double baseFare;
 
-    @NotNull()
-    @Positive(message = "Window surcharge must be a positive value")
+    @NotNull
     Double windowSurcharge;
 
-    @NotNull()
-    @Positive(message = "Aisle surcharge must be a positive value")
+    @NotNull
     Double aisleSurcharge;
+
+    @NotNull
+    @PositiveOrZero
+    Double taxesAndFees;
+
+    @NotNull
+    @PositiveOrZero
+    Double airlineFees;
 
     Double currentPrice;
     Boolean isActive;

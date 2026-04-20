@@ -4,8 +4,9 @@ import com.airline.embeddable.*;
 import com.airline.enums.CabinClassType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.experimental.FieldDefaults;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
@@ -17,70 +18,78 @@ import java.time.Instant;
 @Builder
 @Entity
 @EntityListeners(AuditingEntityListener.class)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Fare {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
 
     @Column(nullable = false)
-    private String name;
+    String name;
 
     @Column(nullable = false)
-    private Character rbdCode;
+    Character rbdCode;
 
     @Column(nullable = false)
-    private Long flightId;
+    Long flightId;
 
     @Column(nullable = false)
-    private Long cabinClassId;
+    Long cabinClassId;
 
     @Enumerated(EnumType.STRING)
-    private CabinClassType cabinClassType;
+    @Column(length = 20)
+    CabinClassType cabinClass;
 
     @Column(nullable = false)
-    private Double baseFare;
+    Double baseFare;
 
-    private Double taxesAndFees;
-    private Double airlineFees;
-
-    @Column(nullable = false)
-    private Double currentPrice;
+    Double taxesAndFees;
+    Double airlineFees;
 
     @Column(nullable = false)
-    private Double totalPrice;
+    Double currentPrice;
 
-    private String fareLabel;
-
+    @Column(length = 100)
+    String fareLabel;
 
     @OneToOne(mappedBy = "fare", cascade = CascadeType.ALL, orphanRemoval = true)
-    private BaggagePolicy baggagePolicy;
+    BaggagePolicy baggagePolicy;
 
     @OneToOne(mappedBy = "fare", cascade = CascadeType.ALL, orphanRemoval = true)
-    private FareRules fareRules;
+    FareRules fareRules;
 
     @Embedded
-    private SeatBenefits seatBenefits = new SeatBenefits();
+    @Builder.Default
+    SeatBenefits seatBenefits = new SeatBenefits();
 
     @Embedded
-    private BoardingBenefits boardingBenefits = new BoardingBenefits();
+    @Builder.Default
+    BoardingBenefits boardingBenefits = new BoardingBenefits();
 
     @Embedded
-    private InFlightBenefits inFlightBenefits = new InFlightBenefits();
+    @Builder.Default
+    InFlightBenefits inFlightBenefits = new InFlightBenefits();
 
     @Embedded
-    private FlexibilityBenefits flexibilityBenefits = new FlexibilityBenefits();
+    @Builder.Default
+    FlexibilityBenefits flexibilityBenefits = new FlexibilityBenefits();
 
     @Embedded
-    private PremiumServiceBenefits premiumServiceBenefits = new PremiumServiceBenefits();
+    @Builder.Default
+    PremiumServiceBenefits premiumServiceBenefits = new PremiumServiceBenefits();
 
-    @CreationTimestamp
-    private Instant createdAt;
+    @Column(updatable = false, nullable = false)
+    @CreatedDate
+    Instant createdAt;
 
-    @UpdateTimestamp
-    private Instant updatedAt;
+    @Column(nullable = false)
+    @LastModifiedDate
+    Instant updatedAt;
 
     public Double getTotalPrice() {
-        return baseFare + taxesAndFees + airlineFees + currentPrice;
+        return baseFare
+                + (airlineFees != null ? airlineFees : 0.0)
+                + (taxesAndFees != null ? taxesAndFees : 0.0);
     }
 }

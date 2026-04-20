@@ -11,9 +11,9 @@ import lombok.experimental.FieldDefaults;
 import java.time.Instant;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class SeatInstanceResponse {
     Long id;
@@ -31,11 +31,13 @@ public class SeatInstanceResponse {
     SeatAvailabilityStatus status;
 
     Long flightInstanceId;
+
     Boolean isBooked;
 
     Long flightCabinId;
     CabinClassType flightCabinClassType;
 
+    String mealPreference;
     Double fare;
 
     Long version;

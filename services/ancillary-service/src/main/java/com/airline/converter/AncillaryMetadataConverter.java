@@ -1,4 +1,4 @@
-package com.airline.service;
+package com.airline.converter;
 
 import com.airline.domain.AncillaryMetadata;
 import jakarta.persistence.AttributeConverter;

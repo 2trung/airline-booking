@@ -8,44 +8,47 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class FlightInstanceRequest {
+
     @NotNull(message = "Flight ID is required")
-    private Long flightId;
+    Long flightId;
 
-    private Long airlineId;
+    Long airlineId;
 
-    private Long scheduleId;
+    Long scheduleId;
 
-    private Long departureAirportId;
-    private Long arrivalAirportId;
+    Long departureAirportId;
 
-    private String flightNumber;
+    Long arrivalAirportId;
 
-    @NotNull(message = "Departure time is required")
-    private Instant departureDateTime;
+    @NotNull(message = "Departure date-time is required")
+    LocalDateTime departureDateTime;
 
-    @NotNull(message = "Arrival time is required")
-    private Instant arrivalDateTime;
+    @NotNull(message = "Arrival date-time is required")
+    LocalDateTime arrivalDateTime;
 
     @NotNull(message = "Total seats is required")
-    @Positive(message = "Total seats must be a positive number")
-    private Integer totalSeats;
+    @Positive
+    Integer totalSeats;
 
-    @PositiveOrZero(message = "Available seats must be zero or a positive number")
-    private Integer availableSeats;
+    @PositiveOrZero
+    Integer availableSeats;
 
-    private FlightStatus status;
+    FlightStatus status;
 
-    private Integer minAdvanceBookingDays;
-    private Integer maxAdvanceBookingDays;
-    private Boolean isActive;
+    Integer minAdvanceBookingDays;
+    Integer maxAdvanceBookingDays;
+    Boolean isActive;
 
-
+    String terminal;
+    String gate;
 }

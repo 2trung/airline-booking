@@ -4,6 +4,7 @@ import com.airline.enums.PaymentGateway;
 import com.airline.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -17,15 +18,16 @@ import java.time.Instant;
 @Builder
 @Entity
 @EntityListeners(AuditingEntityListener.class)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Payment {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(nullable = false)
+    @Column
     Long userId;
 
-    @Column(nullable = false)
+    @Column
     Long bookingId;
 
     Double amount;
@@ -35,6 +37,7 @@ public class Payment {
 
     String providerPaymentId;
     String transactionId;
+    String method;
 
     @Enumerated(EnumType.STRING)
     PaymentStatus status;
@@ -44,9 +47,9 @@ public class Payment {
     String refundId;
 
     @CreatedDate
+    @Column(updatable = false)
     Instant createdAt;
+
     @LastModifiedDate
     Instant updatedAt;
-
-
 }

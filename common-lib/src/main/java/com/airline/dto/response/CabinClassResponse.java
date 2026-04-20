@@ -4,26 +4,28 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class CabinClassResponse {
-    private Long id;
-    private String name;
-    private String code;
-    private String description;
-    private Long aircraftId;
-    private Integer displayOrder;
-    private Boolean isActive;
-    private Boolean isBookable;
-    private Integer typicalSeatPitch;
-    private Integer typicalSeatWidth;
-    private String seatType;
-    private Instant createdAt;
-    private Instant updatedAt;
-    private SeatMapResponse seatMap;
+    Long id;
+    String name;
+    String code;
+    String description;
+    Long aircraftId;
+    Integer displayOrder;
+    Boolean isActive;
+    Boolean isBookable;
+    Integer typicalSeatPitch;
+    Integer typicalSeatWidth;
+    String seatType;
+    Instant createdAt;
+    Instant updatedAt;
+    SeatMapResponse seatMap;
 }

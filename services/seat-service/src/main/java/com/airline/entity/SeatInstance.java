@@ -3,6 +3,7 @@ package com.airline.entity;
 import com.airline.enums.SeatAvailabilityStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -16,38 +17,47 @@ import java.time.Instant;
 @Builder
 @Entity
 @EntityListeners(AuditingEntityListener.class)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class SeatInstance {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
     @Column(nullable = false)
     Long flightId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn()
     FlightInstanceCabin flightInstanceCabin;
 
-    private Long flightInstanceId;
+    @Column()
+    Long flightInstanceId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
     Seat seat;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     SeatAvailabilityStatus status = SeatAvailabilityStatus.AVAILABLE;
 
-    Boolean isBooked = false;
-    Boolean isAvailable = true;
+    boolean isBooked = false;
+    boolean isAvailable = true;
 
+    String mealPreference;
     Double fare;
-    Double premiumSuperCharge;
+    Double premiumSurcharge;
 
     @Version
     Long version;
 
+    @Column()
+    Long flightScheduleId;
+
     @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt;
+    @Column(updatable = false)
+    Instant createdAt;
 
     @LastModifiedDate
-    @Column(nullable = false)
-    private Instant updatedAt;
+    Instant updatedAt;
 }

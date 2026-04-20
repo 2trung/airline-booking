@@ -2,17 +2,24 @@ package com.airline.service;
 
 import com.airline.dto.request.MealRequest;
 import com.airline.dto.response.MealResponse;
+import com.airline.exception.ResourceNotFoundException;
 
 import java.util.List;
 
 public interface MealService {
-    MealResponse createMeal(Long airlineId, MealRequest request);
 
-    MealResponse getMealById(Long id);
+    MealResponse create(Long userId, MealRequest request) throws ResourceNotFoundException;
 
-    void deleteMeal(Long id);
+    List<MealResponse> bulkCreate(Long userId, List<MealRequest> requests) throws ResourceNotFoundException;
 
-    MealResponse updateMeal(Long airlineId, Long id, MealRequest request);
+    MealResponse getById(Long id) throws ResourceNotFoundException;
 
-    List<MealResponse> getMealsByAirlineId(Long airlineId);
+    List<MealResponse> getByAirlineId(Long userId);
+
+    MealResponse update(Long userId, Long id, MealRequest request) throws ResourceNotFoundException;
+
+    void delete(Long id) throws ResourceNotFoundException;
+
+    MealResponse updateAvailability(Long id, Boolean available) throws ResourceNotFoundException;
+
 }

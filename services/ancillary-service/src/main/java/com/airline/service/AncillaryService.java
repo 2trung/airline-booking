@@ -2,17 +2,18 @@ package com.airline.service;
 
 import com.airline.dto.request.AncillaryRequest;
 import com.airline.dto.response.AncillaryResponse;
+import com.airline.exception.ResourceNotFoundException;
 
 import java.util.List;
 
 public interface AncillaryService {
-    AncillaryResponse createAncillary(Long airlineId, AncillaryRequest ancillaryRequest);
+    AncillaryResponse create(Long userId, AncillaryRequest request) throws ResourceNotFoundException;
 
-    AncillaryResponse getAncillaryById(Long id) throws Exception;
+    AncillaryResponse getById(Long id) throws ResourceNotFoundException;
 
-    List<AncillaryResponse> getByAirlineId(Long airlineId);
+    List<AncillaryResponse> getAllByAirlineId(Long userId);
 
-    AncillaryResponse updateAncillary(Long id, AncillaryRequest ancillaryRequest);
+    AncillaryResponse update(Long id, AncillaryRequest request) throws ResourceNotFoundException;
 
-    void deleteAncillary(Long id);
+    void delete(Long id);
 }

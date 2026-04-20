@@ -37,7 +37,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody UserRegisterRequest registerRequest) {
         AuthResponse response = authService.register(registerRequest);
-        if (response.getToken() == null) {
+        if (response.getJwt() == null) {
             HttpStatus status = HttpStatus.BAD_REQUEST;
             if ("Email already exists".equals(response.getMessage())) {
                 status = HttpStatus.CONFLICT;

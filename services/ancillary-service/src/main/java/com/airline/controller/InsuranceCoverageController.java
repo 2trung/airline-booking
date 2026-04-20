@@ -2,6 +2,7 @@ package com.airline.controller;
 
 import com.airline.dto.request.InsuranceCoverageRequest;
 import com.airline.dto.response.InsuranceCoverageResponse;
+import com.airline.exception.ResourceNotFoundException;
 import com.airline.service.InsuranceCoverageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,57 +19,48 @@ import java.util.List;
 @RequiredArgsConstructor
 public class InsuranceCoverageController {
 
-    private final InsuranceCoverageService insuranceCoverageService;
+    private final InsuranceCoverageService coverageService;
 
     @PostMapping
-    public ResponseEntity<InsuranceCoverageResponse> createInsuranceCoverage(
-            @Valid @RequestBody InsuranceCoverageRequest insuranceCoverageRequest) {
-        log.info("REST request to create insurance coverage: {}", insuranceCoverageRequest.getName());
-        InsuranceCoverageResponse response = insuranceCoverageService.createInsuranceCoverage(insuranceCoverageRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<InsuranceCoverageResponse> createCoverage(@Valid @RequestBody InsuranceCoverageRequest request, @RequestHeader("X-User-Id") Long userId) throws ResourceNotFoundException {
+        InsuranceCoverageResponse response = coverageService.createCoverage(request);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{insuranceCoverageId}")
-    public ResponseEntity<InsuranceCoverageResponse> getInsuranceCoverageById(@PathVariable Long insuranceCoverageId) {
-        log.info("REST request to get insurance coverage by ID: {}", insuranceCoverageId);
-        InsuranceCoverageResponse response = insuranceCoverageService.getInsuranceCoverageById(insuranceCoverageId);
-        return ResponseEntity.ok(response);
+    @PostMapping("/bulk")
+    public ResponseEntity<List<InsuranceCoverageResponse>> createCoveragesBulk(@Valid @RequestBody List<InsuranceCoverageRequest> requests, @RequestHeader("X-User-Id") Long userId) throws ResourceNotFoundException {
+        List<InsuranceCoverageResponse> responses = coverageService.createCoveragesBulk(requests);
+        return new ResponseEntity<>(responses, HttpStatus.CREATED);
     }
 
-    @PutMapping("/{insuranceCoverageId}")
-    public ResponseEntity<InsuranceCoverageResponse> updateInsuranceCoverage(
-            @PathVariable Long insuranceCoverageId,
-            @Valid @RequestBody InsuranceCoverageRequest insuranceCoverageRequest) {
-        log.info("REST request to update insurance coverage with ID: {}", insuranceCoverageId);
-        InsuranceCoverageResponse response = insuranceCoverageService.updateInsuranceCoverage(insuranceCoverageId, insuranceCoverageRequest);
-        return ResponseEntity.ok(response);
+    @PutMapping("/{id:\\d+}")
+    public ResponseEntity<InsuranceCoverageResponse> updateCoverage(@PathVariable Long id, @Valid @RequestBody InsuranceCoverageRequest request) throws ResourceNotFoundException {
+        return ResponseEntity.ok(coverageService.updateCoverage(id, request));
     }
 
-    @DeleteMapping("/{insuranceCoverageId}")
-    public ResponseEntity<Void> deleteInsuranceCoverage(@PathVariable Long insuranceCoverageId) {
-        log.info("REST request to delete insurance coverage with ID: {}", insuranceCoverageId);
-        insuranceCoverageService.deleteInsuranceCoverage(insuranceCoverageId);
+    @DeleteMapping("/{id:\\d+}")
+    public ResponseEntity<Void> deleteCoverage(@PathVariable Long id, @RequestHeader("X-User-Id") Long userId) throws ResourceNotFoundException {
+        coverageService.deleteCoverage(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/ancillary/{ancillaryId}")
-    public ResponseEntity<List<InsuranceCoverageResponse>> getInsuranceCoveragesByAncillaryId(@PathVariable Long ancillaryId) {
-        log.info("REST request to get insurance coverages by ancillary ID: {}", ancillaryId);
-        List<InsuranceCoverageResponse> responses = insuranceCoverageService.getInsuranceCoveragesByAncillaryId(ancillaryId);
-        return ResponseEntity.ok(responses);
-    }
-
-    @GetMapping("/ancillary/{ancillaryId}/active")
-    public ResponseEntity<List<InsuranceCoverageResponse>> getActiveInsuranceCoveragesByAncillaryId(@PathVariable Long ancillaryId) {
-        log.info("REST request to get active insurance coverages by ancillary ID: {}", ancillaryId);
-        List<InsuranceCoverageResponse> responses = insuranceCoverageService.getActiveInsuranceCoveragesByAncillaryId(ancillaryId);
-        return ResponseEntity.ok(responses);
+    @GetMapping("/{id:\\d+}")
+    public ResponseEntity<InsuranceCoverageResponse> getCoverageById(@PathVariable Long id) throws ResourceNotFoundException {
+        return ResponseEntity.ok(coverageService.getCoverageById(id));
     }
 
     @GetMapping
-    public ResponseEntity<List<InsuranceCoverageResponse>> getAllInsuranceCoverages() {
-        log.info("REST request to get all insurance coverages");
-        List<InsuranceCoverageResponse> responses = insuranceCoverageService.getAllInsuranceCoverages();
-        return ResponseEntity.ok(responses);
+    public ResponseEntity<List<InsuranceCoverageResponse>> getAllCoverages() {
+        return ResponseEntity.ok(coverageService.getAllCoverages());
+    }
+
+    @GetMapping("/ancillary/{ancillaryId:\\d+}")
+    public ResponseEntity<List<InsuranceCoverageResponse>> getCoveragesByAncillaryId(@PathVariable Long ancillaryId) {
+        return ResponseEntity.ok(coverageService.getCoveragesByAncillaryId(ancillaryId));
+    }
+
+    @GetMapping("/ancillary/{ancillaryId:\\d+}/active")
+    public ResponseEntity<List<InsuranceCoverageResponse>> getActiveCoveragesByAncillaryId(@PathVariable Long ancillaryId) {
+        return ResponseEntity.ok(coverageService.getActiveCoveragesByAncillaryId(ancillaryId));
     }
 }

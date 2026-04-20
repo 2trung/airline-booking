@@ -3,11 +3,11 @@ package com.airline.controller;
 import com.airline.dto.request.FlightCabinAncillaryRequest;
 import com.airline.dto.response.FlightCabinAncillaryResponse;
 import com.airline.enums.AncillaryType;
+import com.airline.exception.ResourceNotFoundException;
 import com.airline.service.FlightCabinAncillaryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,91 +19,58 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FlightCabinAncillaryController {
 
-    private final FlightCabinAncillaryService flightCabinAncillaryService;
+    private final FlightCabinAncillaryService service;
 
     @PostMapping
-    public ResponseEntity<FlightCabinAncillaryResponse> create(
-            @Valid @RequestBody FlightCabinAncillaryRequest flightCabinAncillaryRequest
-    ) {
-        log.info("REST request to create flight cabin ancillary for flight ID: {} and cabin class ID: {}",
-                flightCabinAncillaryRequest.getFlightId(),
-                flightCabinAncillaryRequest.getCabinClassId());
-        FlightCabinAncillaryResponse response = flightCabinAncillaryService.createFlightCabinAncillary(flightCabinAncillaryRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<FlightCabinAncillaryResponse> create(@Valid @RequestBody FlightCabinAncillaryRequest request) throws ResourceNotFoundException {
+        return ResponseEntity.ok(service.create(request));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<FlightCabinAncillaryResponse> getById(@PathVariable Long id) {
-        log.info("REST request to get flight cabin ancillary by ID: {}", id);
-        FlightCabinAncillaryResponse response = flightCabinAncillaryService.getById(id);
-        return ResponseEntity.ok(response);
+    @PostMapping("/bulk")
+    public ResponseEntity<List<FlightCabinAncillaryResponse>> bulkCreate(@Valid @RequestBody List<FlightCabinAncillaryRequest> requests) throws ResourceNotFoundException {
+        return ResponseEntity.ok(service.bulkCreate(requests));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
-        log.info("REST request to delete flight cabin ancillary by ID: {}", id);
-        flightCabinAncillaryService.deleteById(id);
+    @GetMapping("/{id:\\d+}")
+    public ResponseEntity<FlightCabinAncillaryResponse> getById(@PathVariable Long id) throws ResourceNotFoundException {
+        return ResponseEntity.ok(service.getById(id));
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<FlightCabinAncillaryResponse>> getAllByIds(@RequestParam List<Long> Ids) {
+        return ResponseEntity.ok(service.getAllByIds(Ids));
+    }
+
+    @GetMapping("/flight/{flightId:\\d+}/cabin/{cabinClassId}")
+    public ResponseEntity<List<FlightCabinAncillaryResponse>> getAllByFlightAndCabinClass(@PathVariable Long flightId, @PathVariable Long cabinClassId) {
+        return ResponseEntity.ok(service.getAllByFlightAndCabinClass(flightId, cabinClassId));
+    }
+
+    @GetMapping("/flight/{flightId}/cabin/{cabinClassId}/type/{type}")
+    public ResponseEntity<FlightCabinAncillaryResponse> getByFlightAndCabinClassAndType(@PathVariable Long flightId, @PathVariable Long cabinClassId, @PathVariable AncillaryType type) throws ResourceNotFoundException {
+        return ResponseEntity.ok(service.getByFlightIdAndCabinClassAndType(flightId, cabinClassId, type));
+    }
+
+    @GetMapping("/flight/{flightId}/cabin/{cabinClassId}/type/{type}/all")
+    public ResponseEntity<?> getAllByFlightAndCabinClassAndType(@PathVariable Long flightId, @PathVariable Long cabinClassId, @PathVariable AncillaryType type) throws ResourceNotFoundException {
+        return ResponseEntity.ok(service.getAllByFlightIdAndCabinClassAndType(flightId, cabinClassId, type));
+    }
+
+
+    @PutMapping("/{id:\\d+}")
+    public ResponseEntity<FlightCabinAncillaryResponse> update(@PathVariable Long id, @Valid @RequestBody FlightCabinAncillaryRequest request) throws ResourceNotFoundException {
+        return ResponseEntity.ok(service.update(id, request));
+    }
+
+    @DeleteMapping("/{id:\\d+}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<FlightCabinAncillaryResponse> update(
-            @PathVariable Long id,
-            @Valid @RequestBody FlightCabinAncillaryRequest flightCabinAncillaryRequest
-    ) {
-        log.info("REST request to update flight cabin ancillary by ID: {}", id);
-        FlightCabinAncillaryResponse response = flightCabinAncillaryService.update(id, flightCabinAncillaryRequest);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<List<FlightCabinAncillaryResponse>> getByFlightAndCabinClass(
-            @RequestParam Long flightId,
-            @RequestParam Long cabinClassId
-    ) {
-        log.info("REST request to get flight cabin ancillaries by flight ID: {} and cabin class ID: {}", flightId, cabinClassId);
-        List<FlightCabinAncillaryResponse> response = flightCabinAncillaryService.getByFlightAndCabinClass(flightId, cabinClassId);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/batch")
-    public ResponseEntity<List<FlightCabinAncillaryResponse>> getAllByIds(@RequestParam List<Long> ids) {
-        log.info("REST request to get flight cabin ancillaries by IDs: {}", ids);
-        List<FlightCabinAncillaryResponse> response = flightCabinAncillaryService.getAllByIds(ids);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/type")
-    public ResponseEntity<FlightCabinAncillaryResponse> getByFlightIdAndCabinClassIdAndType(
-            @RequestParam Long flightId,
-            @RequestParam Long cabinClassId,
-            @RequestParam AncillaryType type
-    ) {
-        log.info("REST request to get flight cabin ancillary by flight ID: {}, cabin class ID: {}, and type: {}",
-                flightId, cabinClassId, type);
-        FlightCabinAncillaryResponse response = flightCabinAncillaryService
-                .getByFlightIdAndCabinClassIdAndType(flightId, cabinClassId, type);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/types")
-    public ResponseEntity<List<FlightCabinAncillaryResponse>> getAllByFlightIdAndCabinClassIdAndType(
-            @RequestParam Long flightId,
-            @RequestParam Long cabinClassId,
-            @RequestParam AncillaryType type
-    ) {
-        log.info("REST request to get all flight cabin ancillaries by flight ID: {}, cabin class ID: {}, and type: {}",
-                flightId, cabinClassId, type);
-        List<FlightCabinAncillaryResponse> response = flightCabinAncillaryService
-                .getAllByFlightIdAndCabinClassIdAndType(flightId, cabinClassId, type);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/price")
-    public ResponseEntity<Double> calculateAncillaryPrice(@RequestParam List<Long> ancillaryIds) {
-        log.info("REST request to calculate ancillary price for IDs: {}", ancillaryIds);
-        Double totalPrice = flightCabinAncillaryService.calculateAncillaryPrice(ancillaryIds);
-        return ResponseEntity.ok(totalPrice);
+    @PostMapping("/price/total")
+    public ResponseEntity<?> calculateAncillariesPrice(@RequestBody List<Long> flightCabinAncillaryIds) {
+        return ResponseEntity.ok(service.calculateAncillaryPrice(flightCabinAncillaryIds));
     }
 }
 

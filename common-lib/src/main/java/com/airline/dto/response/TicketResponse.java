@@ -7,28 +7,32 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class TicketResponse {
-    Long id;
 
+    Long id;
     String ticketNumber;
     TicketStatus status;
-    Instant issuedAt;
+    LocalDateTime issuedAt;
 
+    // Booking details
     Long bookingId;
     String bookingReference;
 
+    // Passenger details
     Long passengerId;
     String passengerFirstName;
     String passengerLastName;
     String passengerEmail;
 
+    // Payment details
     Long paymentId;
     Double paymentAmount;
+    String paymentCurrency;
 }

@@ -2,21 +2,26 @@ package com.airline.service;
 
 import com.airline.dto.request.InsuranceCoverageRequest;
 import com.airline.dto.response.InsuranceCoverageResponse;
+import com.airline.exception.ResourceNotFoundException;
 
 import java.util.List;
 
 public interface InsuranceCoverageService {
-    InsuranceCoverageResponse createInsuranceCoverage(InsuranceCoverageRequest insuranceCoverageRequest);
 
-    InsuranceCoverageResponse getInsuranceCoverageById(Long id);
+    InsuranceCoverageResponse createCoverage(InsuranceCoverageRequest request) throws ResourceNotFoundException;
 
-    InsuranceCoverageResponse updateInsuranceCoverage(Long id, InsuranceCoverageRequest insuranceCoverageRequest);
+    List<InsuranceCoverageResponse> createCoveragesBulk(List<InsuranceCoverageRequest> requests) throws ResourceNotFoundException;
 
-    void deleteInsuranceCoverage(Long id);
+    InsuranceCoverageResponse updateCoverage(Long id, InsuranceCoverageRequest request) throws ResourceNotFoundException;
 
-    List<InsuranceCoverageResponse> getInsuranceCoveragesByAncillaryId(Long ancillaryId);
+    void deleteCoverage(Long id) throws ResourceNotFoundException;
 
-    List<InsuranceCoverageResponse> getActiveInsuranceCoveragesByAncillaryId(Long ancillaryId);
+    InsuranceCoverageResponse getCoverageById(Long id) throws ResourceNotFoundException;
 
-    List<InsuranceCoverageResponse> getAllInsuranceCoverages();
+    List<InsuranceCoverageResponse> getCoveragesByAncillaryId(Long ancillaryId);
+
+    List<InsuranceCoverageResponse> getActiveCoveragesByAncillaryId(Long ancillaryId);
+
+    List<InsuranceCoverageResponse> getAllCoverages();
+
 }

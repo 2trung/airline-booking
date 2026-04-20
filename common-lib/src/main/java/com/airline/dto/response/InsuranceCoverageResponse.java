@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class InsuranceCoverageResponse {
     Long id;
@@ -20,6 +20,7 @@ public class InsuranceCoverageResponse {
     String name;
     String description;
     Double coverageAmount;
+    String currency;
     Boolean isFlat;
     String claimCondition;
     String emergencyContact;

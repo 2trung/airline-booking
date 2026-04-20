@@ -10,87 +10,43 @@ import com.airline.enums.FlightStatus;
 
 public class FlightMapper {
 
-    private FlightMapper() {
-    }
-
     public static Flight toEntity(FlightRequest request) {
-        if (request == null) {
-            return null;
-        }
-
+        if (request == null) return null;
         return Flight.builder()
-                .flightNumber(normalizeFlightNumber(request.getFlightNumber()))
-                .airlineId(request.getAirlineId())
+                .flightNumber(request.getFlightNumber())
                 .aircraftId(request.getAircraftId())
                 .departureAirportId(request.getDepartureAirportId())
                 .arrivalAirportId(request.getArrivalAirportId())
-                .status(request.getStatus() == null ? FlightStatus.SCHEDULED : request.getStatus())
+                .status(request.getStatus() != null ? request.getStatus() : FlightStatus.SCHEDULED)
                 .build();
     }
 
-    public static void updateEntityFromRequest(Flight flight, FlightRequest request) {
-        if (flight == null || request == null) {
-            return;
-        }
-
-        flight.setFlightNumber(normalizeFlightNumber(request.getFlightNumber()));
-        flight.setAirlineId(request.getAirlineId());
-        flight.setAircraftId(request.getAircraftId());
-        flight.setDepartureAirportId(request.getDepartureAirportId());
-        flight.setArrivalAirportId(request.getArrivalAirportId());
-        if (request.getStatus() != null) {
-            flight.setStatus(request.getStatus());
-        }
-    }
-
-    public static FlightResponse toResponse(Flight flight) {
-        if (flight == null) {
-            return null;
-        }
-
-        return FlightResponse.builder()
-                .id(flight.getId())
-                .flightNumber(flight.getFlightNumber())
-                .airline(AirlineResponse.builder().id(flight.getAirlineId()).build())
-                .aircraft(AircraftResponse.builder().id(flight.getAircraftId()).build())
-                .departureAirport(AirportResponse.builder().id(flight.getDepartureAirportId()).build())
-                .arrivalAirport(AirportResponse.builder().id(flight.getArrivalAirportId()).build())
-                .status(flight.getStatus())
-                .lowestPrice(flight.getLowestPrice())
-                .totalAvailableSeats(flight.getTotalAvailableSeats())
-                .createdAt(flight.getCreatedAt())
-                .updatedAt(flight.getUpdatedAt())
-                .build();
-    }
-
-    private static String normalizeFlightNumber(String flightNumber) {
-        return flightNumber == null ? null : flightNumber.trim().toUpperCase();
-    }
-
-
-    public static FlightResponse toResponse(
-            Flight flight,
-            AircraftResponse aircraftResponse,
-            AirlineResponse airlineResponse,
-            AirportResponse departureAirport,
-            AirportResponse arrivalAirport
-    ) {
-        if (flight == null) {
-            return null;
-        }
-
+    public static FlightResponse toResponse(Flight flight,
+                                            AircraftResponse aircraft,
+                                            AirlineResponse airlineResponse,
+                                            AirportResponse departureAirport,
+                                            AirportResponse arrivalAirport) {
+        if (flight == null) return null;
         return FlightResponse.builder()
                 .id(flight.getId())
                 .flightNumber(flight.getFlightNumber())
                 .airline(airlineResponse)
-                .aircraft(aircraftResponse)
+                .aircraft(aircraft)
                 .departureAirport(departureAirport)
                 .arrivalAirport(arrivalAirport)
                 .status(flight.getStatus())
-                .lowestPrice(flight.getLowestPrice())
-                .totalAvailableSeats(flight.getTotalAvailableSeats())
                 .createdAt(flight.getCreatedAt())
                 .updatedAt(flight.getUpdatedAt())
                 .build();
+    }
+
+    public static void updateEntity(FlightRequest request, Flight existing) {
+        if (request == null || existing == null) return;
+        if (request.getFlightNumber() != null) existing.setFlightNumber(request.getFlightNumber());
+        if (request.getAirlineId() != null) existing.setAirlineId(request.getAirlineId());
+        if (request.getAircraftId() != null) existing.setAircraftId(request.getAircraftId());
+        if (request.getDepartureAirportId() != null) existing.setDepartureAirportId(request.getDepartureAirportId());
+        if (request.getArrivalAirportId() != null) existing.setArrivalAirportId(request.getArrivalAirportId());
+        if (request.getStatus() != null) existing.setStatus(request.getStatus());
     }
 }

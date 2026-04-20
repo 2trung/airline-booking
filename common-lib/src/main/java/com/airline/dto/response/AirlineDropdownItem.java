@@ -4,16 +4,18 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class AirlineDropdownItem {
-    private Long id;
-    private String name;
-    private String iataCode;
-    private String icaoCode;
-    private String logoUrl;
-    private String country;
+    Long id;
+    String name;
+    String iataCode;
+    String icaoCode;
+    String logoUrl;
+    String country;
 }

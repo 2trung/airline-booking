@@ -17,26 +17,25 @@ import java.time.Instant;
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class PaymentDTO {
     Long id;
-
     Long userId;
     String userName;
     String userEmail;
-
     Long bookingId;
     PaymentStatus status;
     PaymentGateway gateway;
-    Double amount;
+    Long amount;
     String transactionId;
     String gatewayPaymentId;
     String gatewayOrderId;
     String gatewaySignature;
-
+    String paymentMethod;
     String description;
     String failureReason;
+    Integer retryCount;
     Instant initiatedAt;
     Instant completedAt;
     Boolean notificationSent;
-    Boolean isActive;
+    Boolean active;
     Instant createdAt;
     Instant updatedAt;
 

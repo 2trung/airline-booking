@@ -4,64 +4,34 @@ import com.airline.dto.request.CabinClassRequest;
 import com.airline.dto.response.CabinClassResponse;
 import com.airline.entity.CabinClass;
 import com.airline.entity.SeatMap;
-
-import java.time.Instant;
+import com.airline.enums.CabinClassType;
 
 public class CabinClassMapper {
 
-    private CabinClassMapper() {
-    }
-
     public static CabinClass toEntity(CabinClassRequest request) {
-        if (request == null) {
-            return null;
-        }
-
+        if (request == null) return null;
         return CabinClass.builder()
-                .name(request.getName())
-                .code(normalizeCode(request.getCode()))
+                .name(CabinClassType.valueOf(request.getName()))
+                .code(request.getCode().toUpperCase())
                 .description(request.getDescription())
-                .airCraftId(request.getAircraftId())
                 .displayOrder(request.getDisplayOrder() != null ? request.getDisplayOrder() : 0)
                 .isActive(request.getIsActive() != null ? request.getIsActive() : true)
                 .isBookable(request.getIsBookable() != null ? request.getIsBookable() : true)
                 .typicalSeatPitch(request.getTypicalSeatPitch())
                 .typicalSeatWidth(request.getTypicalSeatWidth())
                 .seatType(request.getSeatType())
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
                 .build();
     }
 
-    public static void updateEntityFromRequest(CabinClass cabinClass, CabinClassRequest request) {
-        if (cabinClass == null || request == null) {
-            return;
-        }
-        if (request.getName() != null) cabinClass.setName(request.getName());
-        if (request.getCode() != null) cabinClass.setCode(request.getCode());
-        if (request.getDescription() != null) cabinClass.setDescription(request.getDescription());
-        if (request.getDisplayOrder() != null) cabinClass.setDisplayOrder(request.getDisplayOrder());
-        if (request.getIsActive() != null) cabinClass.setIsActive(request.getIsActive());
-        if (request.getIsBookable() != null) cabinClass.setIsBookable(request.getIsBookable());
-        if (request.getTypicalSeatPitch() != null) cabinClass.setTypicalSeatPitch(request.getTypicalSeatPitch());
-        if (request.getTypicalSeatWidth() != null) cabinClass.setTypicalSeatWidth(request.getTypicalSeatWidth());
-        if (request.getSeatType() != null) cabinClass.setSeatType(request.getSeatType());
-
-
-    }
-
     public static CabinClassResponse toResponse(CabinClass cabinClass, SeatMap seatMap) {
-        if (cabinClass == null) {
-            return null;
-        }
-
+        if (cabinClass == null) return null;
         return CabinClassResponse.builder()
                 .id(cabinClass.getId())
-                .name(cabinClass.getName() != null ? cabinClass.getName().name() : null)
+                .name(cabinClass.getName().name())
                 .code(cabinClass.getCode())
                 .description(cabinClass.getDescription())
-                .aircraftId(cabinClass.getAirCraftId())
-                .seatMap(SeatMapMapper.toResponse(seatMap))
+                .aircraftId(cabinClass.getAircraftId())
+                .seatMap(seatMap != null ? SeatMapMapper.toResponse(seatMap) : null)
                 .displayOrder(cabinClass.getDisplayOrder())
                 .isActive(cabinClass.getIsActive())
                 .isBookable(cabinClass.getIsBookable())
@@ -70,11 +40,19 @@ public class CabinClassMapper {
                 .seatType(cabinClass.getSeatType())
                 .createdAt(cabinClass.getCreatedAt())
                 .updatedAt(cabinClass.getUpdatedAt())
-                .seatMap(SeatMapMapper.toResponse(cabinClass.getSeatMap()))
                 .build();
     }
 
-    private static String normalizeCode(String code) {
-        return code == null ? null : code.trim().toUpperCase();
+    public static void updateEntity(CabinClassRequest request, CabinClass existing) {
+        if (request == null || existing == null) return;
+        if (request.getName() != null) existing.setName(CabinClassType.valueOf(request.getName()));
+        if (request.getCode() != null) existing.setCode(request.getCode().toUpperCase());
+        if (request.getDescription() != null) existing.setDescription(request.getDescription());
+        if (request.getDisplayOrder() != null) existing.setDisplayOrder(request.getDisplayOrder());
+        if (request.getIsActive() != null) existing.setIsActive(request.getIsActive());
+        if (request.getIsBookable() != null) existing.setIsBookable(request.getIsBookable());
+        if (request.getTypicalSeatPitch() != null) existing.setTypicalSeatPitch(request.getTypicalSeatPitch());
+        if (request.getTypicalSeatWidth() != null) existing.setTypicalSeatWidth(request.getTypicalSeatWidth());
+        if (request.getSeatType() != null) existing.setSeatType(request.getSeatType());
     }
 }

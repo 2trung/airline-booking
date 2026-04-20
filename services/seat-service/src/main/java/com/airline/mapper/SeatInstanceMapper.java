@@ -1,36 +1,53 @@
 package com.airline.mapper;
 
+import com.airline.dto.request.SeatInstanceRequest;
 import com.airline.dto.response.SeatInstanceResponse;
+import com.airline.entity.FlightInstanceCabin;
+import com.airline.entity.Seat;
 import com.airline.entity.SeatInstance;
 import com.airline.enums.SeatAvailabilityStatus;
 
 public class SeatInstanceMapper {
 
-    public static SeatInstanceResponse toResponse(SeatInstance seatInstance) {
-        if (seatInstance == null) {
-            return null;
-        }
+    public static SeatInstance toEntity(SeatInstanceRequest request, Seat seat,
+                                        FlightInstanceCabin flightInstanceCabin) {
+        return SeatInstance.builder()
+                .flightId(request.getFlightId())
+                .seat(seat)
+                .flightInstanceCabin(flightInstanceCabin)
+                .flightInstanceId(request.getFlightInstanceId())
+                .status(request.getStatus() != null ?
+                        SeatAvailabilityStatus.valueOf(request.getStatus().toUpperCase()) :
+                        SeatAvailabilityStatus.AVAILABLE)
+                .mealPreference(request.getMealPreference())
+                .fare(request.getFare())
+                .flightScheduleId(request.getFlightScheduleId())
+                .build();
+    }
 
-        return SeatInstanceResponse
-                .builder()
-                .id(seatInstance.getId())
-                .flightId(seatInstance.getFlightId())
-                .seatId(seatInstance.getSeat() != null ? seatInstance.getSeat().getId() : null)
-                .seatNumber(seatInstance.getSeat() != null ? seatInstance.getSeat().getSeatNumber() : null)
-                .seatType(seatInstance.getSeat() != null ? seatInstance.getSeat().getSeatType().name() : null)
-                .seatPosition(seatInstance.getSeat() != null ? seatInstance.getSeat().getFullPosition() : null)
-                .seat(SeatMapper.toResponse(seatInstance.getSeat()))
-                .status(seatInstance.getStatus())
-                .flightInstanceId(seatInstance.getFlightInstanceId())
-                .flightCabinId(seatInstance.getFlightInstanceCabin() != null ? seatInstance.getFlightInstanceCabin().getId() : null)
-                .fare(seatInstance.getFare())
-                .price(seatInstance.getPremiumSuperCharge())
-                .version(seatInstance.getVersion())
-                .createdAt(seatInstance.getCreatedAt())
-                .updatedAt(seatInstance.getUpdatedAt())
-                .isAvailable(seatInstance.getIsAvailable())
-                .isBooked(seatInstance.getIsBooked())
-                .isOccupied(seatInstance.getStatus() == SeatAvailabilityStatus.OCCUPIED)
-//                .seatCharacteristics()
-                .build();}
+    public static SeatInstanceResponse toResponse(SeatInstance si) {
+        return SeatInstanceResponse.builder()
+                .id(si.getId())
+                .flightId(si.getFlightId())
+                .seatId(si.getSeat() != null ? si.getSeat().getId() : null)
+                .seatNumber(si.getSeat() != null ? si.getSeat().getSeatNumber() : null)
+                .seatType(si.getSeat() != null ? si.getSeat().getSeatType().name() : null)
+                .seatPosition(si.getSeat() != null ? si.getSeat().getFullPosition() : null)
+                .seat(SeatMapper.toResponse(si.getSeat()))
+                .status(si.getStatus())
+                .flightInstanceId(si.getFlightInstanceId())
+                .flightCabinId(si.getFlightInstanceCabin() != null ? si.getFlightInstanceCabin().getId() : null)
+                .mealPreference(si.getMealPreference())
+                .fare(si.getFare())
+                .price(si.getPremiumSurcharge())
+                .version(si.getVersion())
+                .createdAt(si.getCreatedAt())
+                .updatedAt(si.getUpdatedAt())
+                .isAvailable(si.isAvailable())
+                .isBooked(si.isBooked())
+                .isOccupied(si.getStatus() == SeatAvailabilityStatus.OCCUPIED)
+                .seatCharacteristics(
+                        si.getSeat() != null ? si.getSeat().getSeatCharacteristics() : null)
+                .build();
+    }
 }

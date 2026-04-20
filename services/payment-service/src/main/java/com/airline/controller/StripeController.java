@@ -2,6 +2,7 @@ package com.airline.controller;
 
 import com.airline.dto.request.PaymentVerifyRequest;
 import com.airline.enums.PaymentStatus;
+import com.airline.exception.PaymentException;
 import com.airline.service.gateway.StripeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class StripeController {
     private final StripeService stripeService;
 
     @PostMapping("/verify")
-    public ResponseEntity<PaymentStatus> verifyPayment(@Valid @RequestBody PaymentVerifyRequest request) {
+    public ResponseEntity<PaymentStatus> verifyPayment(@Valid @RequestBody PaymentVerifyRequest request) throws PaymentException {
         return ResponseEntity.ok(stripeService.verifyPayment(request.getStripePaymentIntentId()));
     }
 }

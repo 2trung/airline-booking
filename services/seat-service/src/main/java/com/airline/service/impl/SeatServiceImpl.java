@@ -2,19 +2,25 @@ package com.airline.service.impl;
 
 import com.airline.dto.request.SeatRequest;
 import com.airline.dto.response.SeatResponse;
+import com.airline.entity.CabinClass;
 import com.airline.entity.Seat;
 import com.airline.entity.SeatMap;
 import com.airline.enums.SeatType;
+import com.airline.exception.ResourceNotFoundException;
 import com.airline.mapper.SeatMapper;
+import com.airline.repository.CabinClassRepository;
 import com.airline.repository.SeatMapRepository;
 import com.airline.repository.SeatRepository;
 import com.airline.service.SeatService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -22,57 +28,109 @@ import java.util.List;
 public class SeatServiceImpl implements SeatService {
     private final SeatRepository seatRepository;
     private final SeatMapRepository seatMapRepository;
+    private final CabinClassRepository cabinClassRepository;
 
-    @Override
-    public void generateSeats(Long seatMapId) {
-        boolean isExists = seatRepository.existsBySeatMapId(seatMapId);
-        if (isExists) {
-            throw new RuntimeException("Seats already generated for this seat map");
+
+    public void generateSeats(Long seatMapId
+    ) throws Exception {
+
+        boolean exists = seatRepository.existsBySeatMapId(seatMapId);
+
+        if (exists) {
+            throw new Exception("Seats already created for seat map id " + seatMapId);
         }
-        SeatMap seatMap = seatMapRepository.findById(seatMapId).orElseThrow(() -> new RuntimeException("Seat map not found"));
+
+
+        SeatMap seatMap = seatMapRepository.findById(seatMapId).orElseThrow(
+                () -> new ResourceNotFoundException("seat map not found")
+        );
 
         int leftSeatsPerRow = seatMap.getLeftSeatsPerRow();
         int rightSeatsPerRow = seatMap.getRightSeatsPerRow();
-        int totalRows = seatMap.getTotalRows();
-        int seatPerRow = leftSeatsPerRow + rightSeatsPerRow;
+        int rows = seatMap.getTotalRows();
+        int seatsPerRow = leftSeatsPerRow + rightSeatsPerRow;
+
 
         List<Seat> seats = new ArrayList<>();
 
-        for (int row = 1; row <= totalRows; row++) {
-            for (int col = 1; col <= seatPerRow; col++) {
-                String seatNumber = getSeatLetter(col) + row;
-                SeatType seatType = getSeatType(col, leftSeatsPerRow, rightSeatsPerRow);
-                Seat seat = Seat.builder().seatNumber(seatNumber).seatRow(row).columnLetter(getSeatLetter(col).charAt(0)).seatType(seatType).seatMap(seatMap).build();
-                seats.add(seat);
+
+        for (int row = 1; row <= rows; row++) {
+            for (int col = 0; col < seatsPerRow; col++) {
+                String seatNum = row + getSeatLetter(col);
+                SeatType type = getSeatType(col, leftSeatsPerRow, rightSeatsPerRow);
+
+                seats.add(Seat.builder()
+                        .seatNumber(seatNum)
+                        .seatRow(row)
+                        .columnLetter(getSeatLetter(col).charAt(0))
+                        .seatType(type)
+                        .seatMap(seatMap)
+                        .build());
             }
         }
+
         seatRepository.saveAll(seats);
+
     }
 
     private String getSeatLetter(int col) {
         StringBuilder sb = new StringBuilder();
         while (col >= 0) {
-            sb.insert(0, (char) ('A' + col % 26));
-            col /= 26;
+            sb.insert(0, (char) ('A' + (col % 26)));
+            col = col / 26 - 1;
         }
         return sb.toString();
     }
 
-    private SeatType getSeatType(int col, int leftSeatsPerRows, int rightSeatsPerRows) {
-        int totalSeats = leftSeatsPerRows + rightSeatsPerRows;
-        if (col == 0 || col == totalSeats - 1) return SeatType.WINDOW;
-        if (col == leftSeatsPerRows - 1) return SeatType.AISLE;
-        if (col == leftSeatsPerRows) return SeatType.AISLE;
+    private SeatType getSeatType(int seatIndex, int leftBlockSeats, int rightBlockSeats) {
+        int totalSeats = leftBlockSeats + rightBlockSeats;
+
+        // Windows
+        if (seatIndex == 0 || seatIndex == totalSeats - 1) return SeatType.WINDOW;
+
+        // Left aisle
+        if (seatIndex == leftBlockSeats - 1) return SeatType.AISLE;
+
+        // Right aisle
+        if (seatIndex == leftBlockSeats) return SeatType.AISLE;
+
+        // Everything else
         return SeatType.MIDDLE;
     }
 
     @Override
-    public SeatResponse updateSeats(Long seatId, SeatRequest seatRequest) {
-        return null;
+    @Transactional(readOnly = true)
+    public SeatResponse getSeatById(Long id) {
+        Seat seat = seatRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Seat not found with id: " + id));
+        return SeatMapper.toResponse(seat);
     }
 
     @Override
     public List<SeatResponse> getAll() {
-        return seatRepository.findAll().stream().map(SeatMapper::toResponse).toList();
+        return seatRepository.findAll().stream()
+                .map(SeatMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public SeatResponse updateSeat(Long id, SeatRequest request) {
+        Seat existing = seatRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Seat not found with id: " + id));
+
+        SeatMap seatMap = seatMapRepository.findById(request.getSeatMapId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Seat map not found with id: " + request.getSeatMapId()));
+
+        CabinClass cabinClass = null;
+        if (request.getCabinClassId() != null) {
+            cabinClass = cabinClassRepository.findById(request.getCabinClassId())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Cabin class not found with id: " + request.getCabinClassId()));
+        }
+
+        SeatMapper.updateEntity(request, existing, seatMap, cabinClass);
+        Seat saved = seatRepository.save(existing);
+        return SeatMapper.toResponse(saved);
     }
 }

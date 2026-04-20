@@ -4,13 +4,17 @@ import com.airline.enums.AircraftStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class AircraftRequest {
@@ -61,5 +65,4 @@ public class AircraftRequest {
     Boolean isAvailable;
 
     Long currentAirportId;
-
 }

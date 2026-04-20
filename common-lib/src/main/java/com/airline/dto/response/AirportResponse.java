@@ -1,25 +1,30 @@
 package com.airline.dto.response;
 
 import com.airline.embeddable.Address;
+import com.airline.embeddable.Analytics;
 import com.airline.embeddable.GeoCode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.time.ZoneId;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class AirportResponse {
-    private Long id;
-    private String name;
-    private String iataCode;
-    private String detailedName;
-    private ZoneId timeZone;
-    private Address address;
-    private CityResponse city;
-    private GeoCode geoCode;
+
+    Long id;
+    String iataCode;
+    String name;
+    String detailedName;
+    ZoneId timeZone;
+    Address address;
+    CityResponse city;
+    GeoCode geoCode;
+    Analytics analytics;
 }

@@ -1,62 +1,38 @@
 package com.airline.mapper;
 
 import com.airline.dto.PaymentDTO;
-import com.airline.dto.response.PaymentInitiateResponse;
 import com.airline.entity.Payment;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 public class PaymentMapper {
 
-    private PaymentMapper() {
-    }
-
-    public static PaymentDTO toDto(Payment payment) {
+    public static PaymentDTO toDTO(Payment payment) {
         if (payment == null) {
             return null;
         }
 
-        return PaymentDTO.builder()
-                        .id(payment.getId())
-                .userId(payment.getUserId())
-                .bookingId(payment.getBookingId())
-                .status(payment.getStatus())
-                .gateway(payment.getProvider())
-                .amount(payment.getAmount() == null ? null : payment.getAmount())
-                .transactionId(payment.getTransactionId())
-                .gatewayPaymentId(payment.getProviderPaymentId())
-                .failureReason(payment.getFailureReason())
-                .initiatedAt(payment.getCreatedAt())
-                .completedAt(payment.getPaidAt())
-                .isActive(Boolean.TRUE)
-                .completedAt(payment.getPaidAt())
-                .createdAt(payment.getCreatedAt())
-                .updatedAt(payment.getUpdatedAt())
-                .build();
-    }
+        PaymentDTO dto = new PaymentDTO();
+        dto.setId(payment.getId());
+        dto.setGateway(payment.getProvider());
+        dto.setAmount(payment.getAmount() != null ? payment.getAmount().longValue() : null);
+        dto.setTransactionId(payment.getTransactionId());
+        dto.setPaymentMethod(payment.getMethod());
+        dto.setStatus(payment.getStatus());
+        dto.setUserId(payment.getUserId());
+        dto.setBookingId(payment.getBookingId());
 
-    public static PaymentInitiateResponse toInitiateResponse(Payment payment, String description) {
-        if (payment == null) {
-            return null;
+        if (payment.getPaidAt() != null) dto.setCompletedAt(payment.getPaidAt());
+
+
+        if (payment.getCreatedAt() != null) {
+            dto.setCreatedAt(payment.getCreatedAt());
+            dto.setInitiatedAt(payment.getCreatedAt());
         }
 
-        return PaymentInitiateResponse.builder()
-                .paymentId(payment.getId())
-                .gateway(payment.getProvider())
-                .amount(payment.getAmount())
-                .description(description)
-                .checkOutUrl("/api/payments/checkout/" + payment.getProviderPaymentId())
-                .message("Payment initiated successfully")
-                .success(Boolean.TRUE)
-                .build();
-    }
 
-    private static LocalDateTime toUtcLocalDateTime(Instant instant) {
-        if (instant == null) {
-            return null;
-        }
-        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+        if (payment.getUpdatedAt() != null) dto.setUpdatedAt(payment.getUpdatedAt());
+
+
+        return dto;
     }
 }

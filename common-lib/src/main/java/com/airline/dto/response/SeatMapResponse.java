@@ -9,15 +9,13 @@ import lombok.experimental.FieldDefaults;
 import java.util.List;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class SeatMapResponse {
     Long id;
-
     String name;
-
     Integer totalRows;
 
     Long airlineId;
@@ -32,13 +30,12 @@ public class SeatMapResponse {
     Integer availableSeats;
     Integer occupiedSeats;
 
-//    List<SeatResponse> seats;
+    List<SeatResponse> seats;
 
     Integer windowSeats;
     Integer aisleSeats;
     Integer middleSeats;
     Integer premiumSeats;
-    Integer emergencySeats;
     Integer emergencyExitSeats;
 
     Integer leftSeatsPerRow;

@@ -3,8 +3,10 @@ package com.airline.entity;
 import com.airline.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.experimental.FieldDefaults;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 
@@ -14,28 +16,30 @@ import java.time.Instant;
 @AllArgsConstructor
 @Builder
 @Entity
+@EntityListeners(AuditingEntityListener.class)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    Long id;
 
     @Column(nullable = false)
-    private String fullName;
+    String fullName;
 
     @Column(nullable = false, unique = true)
-    private String email;
+    String email;
 
     @Column(nullable = false)
-    private String password;
+    String password;
 
-    private String phone;
+    String phone;
 
     @Column(nullable = false)
-    private UserRole role;
+    UserRole role;
 
-    @CreationTimestamp
-    private Instant createdAt;
-    @UpdateTimestamp
-    private Instant updatedAt;
-    private Instant lastLoginAt;
+    @CreatedDate
+    Instant createdAt;
+    @LastModifiedDate
+    Instant updatedAt;
+    Instant lastLoginAt;
 }

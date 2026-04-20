@@ -8,18 +8,22 @@ import com.airline.dto.response.AirlineResponse;
 import com.airline.dto.response.AirportResponse;
 import com.airline.dto.response.FlightResponse;
 import com.airline.entity.Flight;
-import com.airline.exception.BadRequestException;
-import com.airline.exception.ResourceNotFoundException;
+import com.airline.enums.FlightStatus;
+import com.airline.exception.AirportException;
 import com.airline.mapper.FlightMapper;
 import com.airline.repository.FlightRepository;
 import com.airline.service.FlightService;
+import feign.FeignException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,103 +35,185 @@ public class FlightServiceImpl implements FlightService {
     private final LocationClient locationClient;
 
     @Override
-    public FlightResponse createFlight(FlightRequest flightRequest) {
-
-        if (flightRepository.existsByFlightNumberIgnoreCase(flightRequest.getFlightNumber())) {
-            throw new BadRequestException("Flight number " + flightRequest.getFlightNumber() + " already exists");
+    public FlightResponse createFlight(Long userId, FlightRequest request) throws AirportException {
+        if (flightRepository.existsByFlightNumber(request.getFlightNumber())) {
+            throw new IllegalArgumentException(
+                    "Flight with number '" + request.getFlightNumber() + "' already exists");
         }
-        Flight flight = FlightMapper.toEntity(flightRequest);
+
+        Long airlineId = getAirlineForUser(userId);
+        validateAircraftExists(request.getAircraftId());
+
+        Flight flight = FlightMapper.toEntity(request);
+        flight.setAirlineId(airlineId);
         Flight saved = flightRepository.save(flight);
-        return convertToFlightResponse(saved);
+        return getFlightResponse(saved);
+    }
+
+    @SneakyThrows
+    @Override
+    public List<FlightResponse> createFlights(Long userId, List<FlightRequest> requests) throws AirportException {
+        Long airlineId = getAirlineForUser(userId);
+
+        // Single DB call to find all already-existing flight numbers
+        Set<String> existingNumbers = flightRepository.findExistingFlightNumbers(
+                requests.stream().map(FlightRequest::getFlightNumber).collect(Collectors.toList()));
+
+        // Validate each unique aircraftId once via Feign
+        Set<Long> validatedAircraftIds = new HashSet<>();
+
+        List<Flight> toSave = requests.stream()
+                .filter(req -> !existingNumbers.contains(req.getFlightNumber()))
+                .map(req -> {
+                    if (validatedAircraftIds.add(req.getAircraftId())) {
+                        validateAircraftExists(req.getAircraftId());
+                    }
+                    Flight flight = FlightMapper.toEntity(req);
+                    flight.setAirlineId(airlineId);
+                    return flight;
+                })
+                .collect(Collectors.toList());
+
+        List<Flight> saved = flightRepository.saveAll(toSave);
+
+        // Enrich responses with cached Feign lookups to avoid N+1
+        AirlineResponse airline = airlineClient.getAirlineById(airlineId);
+        Map<Long, AircraftResponse> aircraftCache = new HashMap<>();
+        Map<Long, AirportResponse> airportCache = new HashMap<>();
+
+        List<FlightResponse> responses = new ArrayList<>();
+        for (Flight flight : saved) {
+            AircraftResponse aircraft = aircraftCache.computeIfAbsent(
+                    flight.getAircraftId(), airlineClient::getAircraftById);
+            AirportResponse departure = airportCache.computeIfAbsent(
+                    flight.getDepartureAirportId(), this::getAirport);
+
+            AirportResponse arrival = airportCache.computeIfAbsent(
+                    flight.getArrivalAirportId(), this::getAirport);
+
+            responses.add(FlightMapper.toResponse(flight, aircraft, airline, departure, arrival));
+        }
+        return responses;
+    }
+
+    private AirportResponse getAirport(Long id) {
+
+        return locationClient.getAirportById(id);
+
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public FlightResponse getFlightById(Long id)  {
+        Flight flight = flightRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Flight not found with id: " + id));
+
+        return getFlightResponse(flight);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public FlightResponse getFlightById(Long id) {
-        return convertToFlightResponse(findByIdOrThrow(id));
+    public FlightResponse getFlightByNumber(String flightNumber) throws AirportException {
+        Flight flight = flightRepository.findByFlightNumber(flightNumber)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Flight not found with number: " + flightNumber));
+        return getFlightResponse(flight);
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FlightResponse> getFlightsByAirline(Long userId, Long departureAirportId, Long arrivalAirportId, Pageable pageable) {
+        Long airlineId = getAirlineForUser(userId);
+        return flightRepository.findByAirlineIdAndOptionalRoute(
+                        airlineId,
+                        departureAirportId,
+                        arrivalAirportId,
+                        pageable
+                )
+                .map(this::getFlightResponse);
+    }
+
+    private Long getAirlineForUser(Long userId) {
+        try {
+            AirlineResponse airline = airlineClient.getAirlineByOwner(userId);
+            return airline.getId();
+        } catch (FeignException.NotFound e) {
+            throw new EntityNotFoundException("No airline found for user: " + userId);
+        } catch (FeignException e) {
+            throw new RuntimeException("Failed to fetch airline from airline-core-service: " + e.getMessage(), e);
+        }
+    }
+
+    private void validateAircraftExists(Long aircraftId) {
+        try {
+            airlineClient.getAircraftById(aircraftId);
+        } catch (FeignException.NotFound e) {
+            throw new EntityNotFoundException("Aircraft not found with id: " + aircraftId);
+        } catch (FeignException e) {
+            throw new RuntimeException("Failed to validate aircraft from airline-core-service: " + e.getMessage(), e);
+        }
     }
 
     @Override
-    public FlightResponse updateFlight(Long id, FlightRequest flightRequest) {
-        Flight existing = findByIdOrThrow(id);
-        validateUpdateRequest(id, flightRequest);
+    public FlightResponse updateFlight(Long id, FlightRequest request) throws AirportException {
+        Flight existing = flightRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Flight not found with id: " + id));
 
-        FlightMapper.updateEntityFromRequest(existing, flightRequest);
-        validateFlightSchedule(existing.getDepartureDateTime(), existing.getArrivalDateTime());
-        Flight updated = flightRepository.save(existing);
-        return convertToFlightResponse(updated);
+        if (request.getFlightNumber() != null &&
+                flightRepository.existsByFlightNumberAndIdNot(request.getFlightNumber(), id)) {
+            throw new IllegalArgumentException(
+                    "Flight with number '" + request.getFlightNumber() + "' already exists");
+        }
+
+        FlightMapper.updateEntity(request, existing);
+        Flight saved = flightRepository.save(existing);
+        return getFlightResponse(saved);
+    }
+
+    @Override
+    public FlightResponse changeStatus(Long id, FlightStatus status) throws AirportException {
+        Flight flight = flightRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Flight not found with id: " + id));
+        flight.setStatus(status);
+        return getFlightResponse(flight);
     }
 
     @Override
     public void deleteFlight(Long id) {
-        Flight existing = findByIdOrThrow(id);
-        flightRepository.delete(existing);
+        Flight flight = flightRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Flight not found with id: " + id));
+        flightRepository.delete(flight);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<FlightResponse> getFlightsByAirline(
-            Long airlineId,
-            Long departureAirportId,
-            Long arrivalAirportId,
-            Pageable pageable
-    ) {
-        return flightRepository.searchFlights(
-                airlineId,
-                departureAirportId,
-                arrivalAirportId,
-                pageable
-        ).map(this::convertToFlightResponse);
+    public Map<Long, FlightResponse> getFlightsByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) return Map.of();
+        List<Flight> flights = flightRepository.findAllById(ids);
+
+        Map<Long, AirlineResponse> airlineCache = new HashMap<>();
+        Map<Long, AircraftResponse> aircraftCache = new HashMap<>();
+        Map<Long, AirportResponse> airportCache = new HashMap<>();
+
+        Map<Long, FlightResponse> result = new HashMap<>();
+        for (Flight flight : flights) {
+            AirlineResponse airline = airlineCache.computeIfAbsent(flight.getAirlineId(), airlineClient::getAirlineById);
+            AircraftResponse aircraft = aircraftCache.computeIfAbsent(flight.getAircraftId(), airlineClient::getAircraftById);
+            AirportResponse departure = airportCache.computeIfAbsent(flight.getDepartureAirportId(), this::getAirport);
+            AirportResponse arrival = airportCache.computeIfAbsent(flight.getArrivalAirportId(), this::getAirport);
+            result.put(flight.getId(), FlightMapper.toResponse(flight, aircraft, airline, departure, arrival));
+        }
+        return result;
     }
 
-    private Flight findByIdOrThrow(Long id) {
-        return flightRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Flight not found with id: " + id));
-    }
-
-    private void validateCreateRequest(FlightRequest flightRequest) {
-        validateRequestBody(flightRequest);
-
-        if (flightRepository.existsByFlightNumberIgnoreCase(flightRequest.getFlightNumber())) {
-            throw new BadRequestException("Flight number " + flightRequest.getFlightNumber() + " already exists");
-        }
-    }
-
-    private void validateUpdateRequest(Long id, FlightRequest flightRequest) {
-        validateRequestBody(flightRequest);
-
-        if (flightRepository.existsByFlightNumberIgnoreCaseAndIdNot(flightRequest.getFlightNumber(), id)) {
-            throw new BadRequestException("Flight number " + flightRequest.getFlightNumber() + " already exists");
-        }
-    }
-
-    private void validateRequestBody(FlightRequest flightRequest) {
-        if (flightRequest == null) {
-            throw new BadRequestException("Flight request body is required");
-        }
-
-        if (flightRequest.getAirlineId() == null) {
-            throw new BadRequestException("Airline ID is required");
-        }
-
-        if (flightRequest.getDepartureAirportId() != null
-                && flightRequest.getDepartureAirportId().equals(flightRequest.getArrivalAirportId())) {
-            throw new BadRequestException("Departure and arrival airports must be different");
-        }
-    }
-
-    private void validateFlightSchedule(Instant departureTime, Instant arrivalTime) {
-        if (!arrivalTime.isAfter(departureTime)) {
-            throw new BadRequestException("Arrival time must be after departure time");
-        }
-    }
-
-    public FlightResponse convertToFlightResponse(Flight flight) {
-        AircraftResponse aircraft = airlineClient.getAircraftById(flight.getAircraftId());
-        AirlineResponse airline = airlineClient.getAirlineById(flight.getAirlineId());
-        AirportResponse departureAirport = locationClient.getAirportById(flight.getDepartureAirportId());
-        AirportResponse arrivalAirport = locationClient.getAirportById(flight.getArrivalAirportId());
-        return FlightMapper.toResponse(flight, aircraft, airline, departureAirport, arrivalAirport);
+    private FlightResponse getFlightResponse(Flight flight) {
+        AircraftResponse aircraft=airlineClient.getAircraftById(flight.getAircraftId());
+        AirlineResponse airline=airlineClient.getAirlineById(flight.getAirlineId());
+        AirportResponse departureAirport=locationClient.getAirportById(flight.getDepartureAirportId());
+        AirportResponse arrivalAirport=locationClient.getAirportById(flight.getArrivalAirportId());
+        return FlightMapper.toResponse(flight,aircraft,airline,departureAirport,arrivalAirport);
     }
 }
 

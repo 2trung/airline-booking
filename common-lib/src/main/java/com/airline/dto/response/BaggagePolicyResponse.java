@@ -9,31 +9,37 @@ import lombok.experimental.FieldDefaults;
 import java.time.Instant;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class BaggagePolicyResponse {
-    Long id;
 
+    Long id;
     String name;
     String description;
 
+    // Cabin baggage
     Double cabinBaggageMaxWeight;
     Integer cabinBaggagePieces;
-    Double checkInBaggageMaxWeight;
-    Integer cabinBaggageMaxDimension;
+    Double cabinBaggageWeightPerPiece;
+    Double cabinBaggageMaxDimension;
 
+    // Check-in baggage
+    Double checkInBaggageMaxWeight;
     Integer checkInBaggagePieces;
     Double checkInBaggageWeightPerPiece;
-    Integer freeCheckedBagsAllowed;
+    Integer freeCheckedBagsAllowance;
 
-    Boolean priorityBaggageAllowed;
-    Boolean extraBaggageAllowed;
+    // Benefits
+    Boolean priorityBaggage;
+    Boolean extraBaggageAllowance;
 
-    Long flightId;
+    // Relationships
     Long airlineId;
+    Long fareId;
 
+    // Audit
     Instant createdAt;
     Instant updatedAt;
 }

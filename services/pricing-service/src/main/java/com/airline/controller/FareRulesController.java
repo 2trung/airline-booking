@@ -21,46 +21,39 @@ public class FareRulesController {
     private final FareRulesService fareRulesService;
 
     @PostMapping
-    public ResponseEntity<FareRulesResponse> createFareRules(@Valid @RequestBody FareRulesRequest fareRulesRequest) {
-        log.info("REST request to create fare rules: {}", fareRulesRequest.getRuleName());
-        FareRulesResponse fareRulesResponse = fareRulesService.createFareRules(fareRulesRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(fareRulesResponse);
+    public ResponseEntity<FareRulesResponse> createFareRules(
+            @Valid @RequestBody FareRulesRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(fareRulesService.createFareRules(request));
     }
 
-    @GetMapping("/{fareRulesId}")
-    public ResponseEntity<FareRulesResponse> getFareRulesById(@PathVariable Long fareRulesId) {
-        log.info("REST request to get fare rules by ID: {}", fareRulesId);
-        FareRulesResponse fareRulesResponse = fareRulesService.getFareRulesById(fareRulesId);
-        return ResponseEntity.ok(fareRulesResponse);
+    @GetMapping("/{id}")
+    public ResponseEntity<FareRulesResponse> getFareRulesById(@PathVariable Long id) {
+        return ResponseEntity.ok(fareRulesService.getFareRulesById(id));
     }
 
     @GetMapping("/fare/{fareId}")
-    public ResponseEntity<FareRulesResponse> getFareRulesByFareId(@PathVariable Long fareId) {
-        log.info("REST request to get fare rules by fare ID: {}", fareId);
-        FareRulesResponse fareRulesResponse = fareRulesService.getFareRulesByFareId(fareId);
-        return ResponseEntity.ok(fareRulesResponse);
+    public ResponseEntity<FareRulesResponse> getFareRulesByFareId(
+            @PathVariable Long fareId) {
+        return ResponseEntity.ok(fareRulesService.getFareRulesByFareId(fareId));
     }
 
     @GetMapping("/airline/{airlineId}")
-    public ResponseEntity<List<FareRulesResponse>> getFareRulesByAirlineId(@PathVariable Long airlineId) {
-        log.info("REST request to get fare rules by airline ID: {}", airlineId);
-        List<FareRulesResponse> fareRulesList = fareRulesService.getFareRulesByAirlineId(airlineId);
-        return ResponseEntity.ok(fareRulesList);
+    public ResponseEntity<List<FareRulesResponse>> getFareRulesByAirlineId(
+            @PathVariable Long airlineId) {
+        return ResponseEntity.ok(fareRulesService.getFareRulesByAirlineId(airlineId));
     }
 
-    @PutMapping("/{fareRulesId}")
+    @PutMapping("/{id}")
     public ResponseEntity<FareRulesResponse> updateFareRules(
-            @PathVariable Long fareRulesId,
-            @Valid @RequestBody FareRulesRequest fareRulesRequest) {
-        log.info("REST request to update fare rules with ID: {}", fareRulesId);
-        FareRulesResponse fareRulesResponse = fareRulesService.updateFareRules(fareRulesId, fareRulesRequest);
-        return ResponseEntity.ok(fareRulesResponse);
+            @PathVariable Long id,
+            @Valid @RequestBody FareRulesRequest request) {
+        return ResponseEntity.ok(fareRulesService.updateFareRules(id, request));
     }
 
-    @DeleteMapping("/{fareRulesId}")
-    public ResponseEntity<Void> deleteFareRules(@PathVariable Long fareRulesId) {
-        log.info("REST request to delete fare rules with ID: {}", fareRulesId);
-        fareRulesService.deleteFareRules(fareRulesId);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteFareRules(@PathVariable Long id) {
+        fareRulesService.deleteFareRules(id);
         return ResponseEntity.noContent().build();
     }
 }

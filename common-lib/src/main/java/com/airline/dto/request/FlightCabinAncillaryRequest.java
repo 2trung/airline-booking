@@ -8,19 +8,19 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class FlightCabinAncillaryRequest {
 
-    @NotNull(message = "Flight id is required")
+    @NotNull(message = "Flight ID is required")
     Long flightId;
 
-    @NotNull(message = "Cabin class id is required")
+    @NotNull(message = "Cabin Class ID is required")
     Long cabinClassId;
 
-    @NotNull(message = "Ancillary id is required")
+    @NotNull(message = "Ancillary ID is required")
     Long ancillaryId;
 
     @NotNull(message = "Availability status is required")
@@ -29,6 +29,8 @@ public class FlightCabinAncillaryRequest {
     Integer maxQuantity;
 
     Double price;
+
+    String currency;
 
     @NotNull(message = "Included in fare status is required")
     Boolean includedInFare;

@@ -9,10 +9,8 @@ import java.util.Optional;
 
 @Repository
 public interface FareRulesRepository extends JpaRepository<FareRules, Long> {
-    
+
     Optional<FareRules> findByFareId(Long fareId);
-    
     List<FareRules> findByAirlineId(Long airlineId);
-    
-    Boolean existsByFareId(Long fareId);
+    boolean existsByFareId(Long fareId);
 }

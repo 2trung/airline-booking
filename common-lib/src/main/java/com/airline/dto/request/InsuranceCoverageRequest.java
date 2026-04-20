@@ -12,9 +12,9 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class InsuranceCoverageRequest {
 
@@ -25,22 +25,24 @@ public class InsuranceCoverageRequest {
     CoverageType coverageType;
 
     @NotBlank(message = "Coverage name is required")
-    @Size(max = 200, message = "Coverage name must not exceed 200 characters")
+    @Size(max = 200, message = "Coverage name cannot be longer than 200 characters")
     String name;
 
-    @Size(max = 1000, message = "Coverage description must not exceed 1000 characters")
+    @Size(max = 1000, message = "Description cannot be longer than 1000 characters")
     String description;
 
     @NotNull(message = "Coverage amount is required")
     @PositiveOrZero(message = "Coverage amount must be zero or positive")
     Double coverageAmount;
 
+    String currency;
+
     Boolean isFlat;
 
-    @Size(max = 1000, message = "Claim condition must not exceed 1000 characters")
+    @Size(max = 500, message = "Claim condition cannot be longer than 500 characters")
     String claimCondition;
 
-    @Size(max = 100, message = "Emergency contact must not exceed 100 characters")
+    @Size(max = 100, message = "Emergency contact cannot be longer than 100 characters")
     String emergencyContact;
 
     Integer displayOrder;

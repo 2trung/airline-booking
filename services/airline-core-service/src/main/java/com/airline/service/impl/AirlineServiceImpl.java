@@ -10,6 +10,9 @@ import com.airline.repository.AirlineRepository;
 import com.airline.service.AirlineService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,7 @@ public class AirlineServiceImpl implements AirlineService {
     }
 
     @Override
+    @Cacheable(cacheNames = "airlinesByOwner", key = "#ownerId")
     public AirlineResponse getAirlineByOwner(Long ownerId) {
         Airline airline = airlineRepository.findByOwnerId(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException("Airline not found for owner: " + ownerId));
@@ -39,6 +43,7 @@ public class AirlineServiceImpl implements AirlineService {
     }
 
     @Override
+    @Cacheable(cacheNames = "airlines", key = "#id")
     public AirlineResponse getAirlineById(Long id) {
         Airline airline = airlineRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Airline not found"));
@@ -52,6 +57,12 @@ public class AirlineServiceImpl implements AirlineService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "airlinesByOwner", key = "#ownerId"),
+            @CacheEvict(cacheNames = "airlines", allEntries = true),
+            @CacheEvict(cacheNames = "airlinesByIata", allEntries = true),
+            @CacheEvict(cacheNames = "airlinesByAlliance", allEntries = true)
+    })
     public AirlineResponse updateAirline(AirlineRequest request, Long ownerId) {
         Airline airline = airlineRepository.findByOwnerId(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException("Airline not found for owner: " + ownerId));
@@ -61,6 +72,12 @@ public class AirlineServiceImpl implements AirlineService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "airlines", key = "#id"),
+            @CacheEvict(cacheNames = "airlinesByOwner", allEntries = true),
+            @CacheEvict(cacheNames = "airlinesByIata", allEntries = true),
+            @CacheEvict(cacheNames = "airlinesByAlliance", allEntries = true)
+    })
     public void deleteAirline(Long id, Long ownerId) {
         Airline airline = airlineRepository.findByOwnerId(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException("Airline not found for owner: " + ownerId));
@@ -68,15 +85,19 @@ public class AirlineServiceImpl implements AirlineService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "airlines", key = "#airlineId"),
+            @CacheEvict(cacheNames = "airlinesByAlliance", allEntries = true)
+    })
     public AirlineResponse changeStatusByAdmin(Long airlineId, AirlineStatus status) {
         Airline airline = airlineRepository.findById(airlineId)
                 .orElseThrow(() -> new EntityNotFoundException("Airline not found with ID: " + airlineId));
         airline.setStatus(status);
         return AirlineMapper.toResponse(airlineRepository.save(airline));
     }
-
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "airlinesDropdown")
     public List<AirlineDropdownItem> getAirlinesForDropdown() {
         return airlineRepository.findByStatus(AirlineStatus.ACTIVE).stream()
                 .map(a -> AirlineDropdownItem.builder()
@@ -89,5 +110,6 @@ public class AirlineServiceImpl implements AirlineService {
                         .build())
                 .toList();
     }
+
 }
 

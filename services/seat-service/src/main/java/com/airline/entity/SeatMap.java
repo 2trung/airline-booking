@@ -2,6 +2,7 @@ package com.airline.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.List;
@@ -13,28 +14,30 @@ import java.util.List;
 @Builder
 @Entity
 @EntityListeners(AuditingEntityListener.class)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class SeatMap {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
     @Column(nullable = false)
     String name;
 
-    Integer totalRows;
+    int totalRows;
 
     @Column(nullable = false)
-    Integer rightSeatsPerRow;
+    int rightSeatsPerRow;
 
     @Column(nullable = false)
-    Integer leftSeatsPerRow;
+    int leftSeatsPerRow;
 
     @Column(nullable = false)
     Long airlineId;
 
-    @OneToOne
-    CabinClass cabinClass;
-
     @OneToMany(mappedBy = "seatMap", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Seat> seats;
+    List<Seat> seats;
+
+    @OneToOne
+    @JoinColumn()
+    CabinClass cabinClass;
 }

@@ -5,7 +5,9 @@ import com.airline.dto.response.FlightCabinAncillaryResponse;
 import com.airline.dto.response.InsuranceCoverageResponse;
 import com.airline.entity.Ancillary;
 import com.airline.entity.FlightCabinAncillary;
+import com.airline.entity.InsuranceCoverage;
 import com.airline.enums.AncillaryType;
+import com.airline.exception.ResourceNotFoundException;
 import com.airline.mapper.FlightCabinAncillaryMapper;
 import com.airline.mapper.InsuranceCoverageMapper;
 import com.airline.repository.AncillaryRepository;
@@ -17,122 +19,134 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class FlightCabinAncillaryServiceImpl implements FlightCabinAncillaryService {
 
-    private final FlightCabinAncillaryRepository flightCabinAncillaryRepository;
+    private final FlightCabinAncillaryRepository repository;
     private final AncillaryRepository ancillaryRepository;
     private final InsuranceCoverageRepository insuranceCoverageRepository;
 
-    @Override
-    public FlightCabinAncillaryResponse createFlightCabinAncillary(FlightCabinAncillaryRequest flightCabinAncillaryRequest) {
-        Ancillary ancillary = ancillaryRepository.findById(flightCabinAncillaryRequest.getAncillaryId())
-                .orElseThrow(() -> new RuntimeException("Ancillary not found with id: " + flightCabinAncillaryRequest.getAncillaryId()));
+    private FlightCabinAncillaryResponse mapWithCoverages(
+            FlightCabinAncillary entity) {
+        List<InsuranceCoverage> coverages = insuranceCoverageRepository
+                .findByAncillary(entity.getAncillary());
+        List<InsuranceCoverageResponse> coverageResponses = coverages.stream()
+                .map(InsuranceCoverageMapper::toResponse)
+                .toList();
+        return FlightCabinAncillaryMapper.toResponse(entity, coverageResponses);
+    }
 
-        FlightCabinAncillary flightCabinAncillary = FlightCabinAncillary.builder()
-                .flightId(flightCabinAncillaryRequest.getFlightId())
-                .cabinClassId(flightCabinAncillaryRequest.getCabinClassId())
+    @Override
+    public FlightCabinAncillaryResponse create(FlightCabinAncillaryRequest req)
+            throws ResourceNotFoundException {
+        Ancillary ancillary = ancillaryRepository.findById(req.getAncillaryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Ancillary not found"));
+
+        FlightCabinAncillary entity = FlightCabinAncillary.builder()
+                .flightId(req.getFlightId())
+                .cabinClassId(req.getCabinClassId())
                 .ancillary(ancillary)
-                .available(flightCabinAncillaryRequest.getAvailable())
-                .maxQuantity(flightCabinAncillaryRequest.getMaxQuantity())
-                .price(flightCabinAncillaryRequest.getPrice())
-                .includedInFare(flightCabinAncillaryRequest.getIncludedInFare())
+                .available(req.getAvailable())
+                .maxQuantity(req.getMaxQuantity())
+                .price(req.getPrice())
+                .currency(req.getCurrency())
+                .includedInFare(req.getIncludedInFare())
                 .build();
 
-        FlightCabinAncillary saved = flightCabinAncillaryRepository.save(flightCabinAncillary);
-        return toResponse(saved);
+        return mapWithCoverages(repository.save(entity));
     }
 
     @Override
-    public FlightCabinAncillaryResponse getById(Long id) {
-        FlightCabinAncillary flightCabinAncillary = flightCabinAncillaryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Flight cabin ancillary not found with id: " + id));
-        return toResponse(flightCabinAncillary);
+    public List<FlightCabinAncillaryResponse> bulkCreate(List<FlightCabinAncillaryRequest> requests) {
+        return requests.stream()
+                .map(req -> {
+                    try {
+                        return create(req);
+                    } catch (ResourceNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
-    public void deleteById(Long id) {
-        FlightCabinAncillary flightCabinAncillary = flightCabinAncillaryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Flight cabin ancillary not found with id: " + id));
-        flightCabinAncillaryRepository.delete(flightCabinAncillary);
+    public FlightCabinAncillaryResponse getById(Long id) throws ResourceNotFoundException {
+        FlightCabinAncillary entity = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("FlightCabinAncillary not found"));
+        return mapWithCoverages(entity);
     }
 
     @Override
-    public List<FlightCabinAncillaryResponse> getByFlightAndCabinClass(Long flightId, Long cabinClassId) {
-        return flightCabinAncillaryRepository.findByFlightIdAndCabinClassId(flightId, cabinClassId)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+    public List<FlightCabinAncillaryResponse> getAllByFlightAndCabinClass(Long flightId, Long cabinClassId) {
+        return repository.findByFlightIdAndCabinClassId(flightId, cabinClassId).stream()
+                .map(this::mapWithCoverages)
+                .collect(Collectors.toList());
     }
-
 
     @Override
     public List<FlightCabinAncillaryResponse> getAllByIds(List<Long> ids) {
-        return flightCabinAncillaryRepository.findAllById(ids)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        List<FlightCabinAncillary> ancillaries = repository.findAllById(ids);
+        return ancillaries.stream().map(
+                this::mapWithCoverages
+        ).collect(Collectors.toList());
+    }
+
+
+    @Override
+    public FlightCabinAncillaryResponse getByFlightIdAndCabinClassAndType(
+            Long flightId, Long cabinClassId, AncillaryType type) throws ResourceNotFoundException {
+        FlightCabinAncillary entity = repository
+                .findByFlightIdAndCabinClassIdAndAncillary_Type(flightId, cabinClassId, type)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "FlightCabinAncillary not found for type: " + type));
+        return mapWithCoverages(entity);
     }
 
     @Override
-    public FlightCabinAncillaryResponse getByFlightIdAndCabinClassIdAndType(Long flightId, Long cabinClassId, AncillaryType type) {
-        FlightCabinAncillary flightCabinAncillary = flightCabinAncillaryRepository
-                .findByFlightIdAndCabinClassIdAndAncillary_Type(flightId, cabinClassId, type);
-        return toResponse(flightCabinAncillary);
+    public List<FlightCabinAncillaryResponse> getAllByFlightIdAndCabinClassAndType(Long flightId, Long cabinClassId, AncillaryType type) {
+        List<FlightCabinAncillary> ancillaries=
+                repository.findAllByFlightIdAndCabinClassIdAndAncillary_Type(
+                        flightId, cabinClassId, type
+                );
+        return ancillaries.stream().map(
+                this::mapWithCoverages
+        ).collect(Collectors.toList());
+    }
+
+
+    @Override
+    public FlightCabinAncillaryResponse update(Long id, FlightCabinAncillaryRequest req)
+            throws ResourceNotFoundException {
+        FlightCabinAncillary entity = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("FlightCabinAncillary not found"));
+
+        entity.setAvailable(req.getAvailable());
+        entity.setMaxQuantity(req.getMaxQuantity());
+        entity.setPrice(req.getPrice());
+        entity.setCurrency(req.getCurrency());
+        entity.setIncludedInFare(req.getIncludedInFare());
+
+        return mapWithCoverages(repository.save(entity));
     }
 
     @Override
-    public List<FlightCabinAncillaryResponse> getAllByFlightIdAndCabinClassIdAndType(Long flightId, Long cabinClassId, AncillaryType type) {
-        return flightCabinAncillaryRepository.findAllByFlightIdAndCabinClassIdAndAncillary_Type(flightId, cabinClassId, type)
-                .stream()
-                .map(this::toResponse)
-                .toList();
-    }
-
-    @Override
-    public FlightCabinAncillaryResponse update(Long id, FlightCabinAncillaryRequest flightCabinAncillaryRequest) {
-        FlightCabinAncillary existing = flightCabinAncillaryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Flight cabin ancillary not found with id: " + id));
-
-        if (flightCabinAncillaryRequest.getAvailable() != null) {
-            existing.setAvailable(flightCabinAncillaryRequest.getAvailable());
-        }
-        if (flightCabinAncillaryRequest.getMaxQuantity() != null) {
-            existing.setMaxQuantity(flightCabinAncillaryRequest.getMaxQuantity());
-        }
-        if (flightCabinAncillaryRequest.getIncludedInFare() != null) {
-            existing.setIncludedInFare(flightCabinAncillaryRequest.getIncludedInFare());
-        }
-        if (flightCabinAncillaryRequest.getPrice() != null) {
-            existing.setPrice(flightCabinAncillaryRequest.getPrice());
-        }
-
-        FlightCabinAncillary updated = flightCabinAncillaryRepository.save(existing);
-        return toResponse(updated);
+    public void delete(Long id) {
+        repository.deleteById(id);
     }
 
     @Override
     public Double calculateAncillaryPrice(List<Long> ancillaryIds) {
-        if (ancillaryIds == null || ancillaryIds.isEmpty()) {
-            return 0.0;
+        List<FlightCabinAncillary> ancillaries = repository.findAllById(ancillaryIds);
+
+        double totalPrice = 0;
+        for (FlightCabinAncillary ancillary : ancillaries) {
+            totalPrice += ancillary.getPrice();
         }
-
-        return flightCabinAncillaryRepository.findAllById(ancillaryIds)
-                .stream()
-                .map(FlightCabinAncillary::getPrice)
-                .map(price -> price != null ? price : 0.0)
-                .reduce(0.0, Double::sum);
-    }
-
-    private FlightCabinAncillaryResponse toResponse(FlightCabinAncillary flightCabinAncillary) {
-        List<InsuranceCoverageResponse> coverages = insuranceCoverageRepository.findByAncillaryId(flightCabinAncillary.getId())
-                .stream()
-                .map(InsuranceCoverageMapper::toResponse)
-                .toList();
-        return FlightCabinAncillaryMapper.toResponse(flightCabinAncillary, coverages);
+        return totalPrice;
     }
 }
 

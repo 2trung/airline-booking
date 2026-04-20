@@ -10,28 +10,26 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class SeatMapRequest {
+
     @NotBlank(message = "Seat map name is required")
     String name;
 
-    @Positive(message = "Total columns must be a positive number")
-    @NotNull(message = "Total columns is required")
+    @NotNull(message = "Total rows is required")
+    @Positive(message = "Total rows must be a positive number")
     Integer totalRows;
 
-    @NotNull(message = "Total seats is required")
-    @Positive(message = "Total seats must be a positive number")
+    @NotNull(message = "Left seats per row is required")
+    @Positive
     Integer leftSeatsPerRow;
 
-    @NotNull(message = "Total seats is required")
-    @Positive(message = "Total seats must be a positive number")
+    @NotNull(message = "Right seats per row is required")
+    @Positive(message = "Right seats per row must be a positive number")
     Integer rightSeatsPerRow;
 
     Long cabinClassId;
-
-    @NotNull(message = "Airline ID is required")
-    Long airlineId;
 }

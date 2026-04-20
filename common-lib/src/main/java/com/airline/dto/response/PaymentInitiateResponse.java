@@ -8,17 +8,23 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class PaymentInitiateResponse {
+
     Long paymentId;
     PaymentGateway gateway;
-    Double amount;
     String transactionId;
+
+    Double amount;
+    String currency;
     String description;
-    String checkOutUrl;
+
+    // Frontend should redirect user to this URL for payment
+    String checkoutUrl;
+
     String message;
     Boolean success;
 }

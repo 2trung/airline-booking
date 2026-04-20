@@ -11,29 +11,22 @@ import lombok.experimental.FieldDefaults;
 import java.util.List;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class AncillaryResponse {
     Long id;
-
     AncillaryType type;
-
     String subType;
-
     String rfisc;
-
     String name;
-
     String description;
     String categoryDisplayName;
     String categoryIcon;
     String iconUrl;
     AncillaryMetadata metadata;
-
     List<InsuranceCoverageResponse> coverages;
-
     Integer displayOrder;
     Long airlineId;
 }

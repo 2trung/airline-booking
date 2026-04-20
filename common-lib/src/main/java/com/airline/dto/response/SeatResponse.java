@@ -10,9 +10,9 @@ import lombok.experimental.FieldDefaults;
 import java.time.Instant;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class SeatResponse {
     Long id;
@@ -21,19 +21,23 @@ public class SeatResponse {
     Character columnLetter;
     SeatType seatType;
 
+    Boolean isAvailable;
+    Boolean isBlocked;
+    Boolean isEmergencyExit;
+    Boolean isActive;
+
     Double basePrice;
-    Double premiumSuperCharge;
+    Double premiumSurcharge;
     Double totalPrice;
 
-    Boolean isAvailable;
-    Boolean isActive ;
-    Boolean isBlocked ;
-    Boolean isEmergencyExit ;
-
-    Boolean hasExtraLegRoom ;
-    Boolean hasPowerOutlet ;
-    Boolean hasTvScreen ;
-    Boolean hasExtraWidth ;
+    Boolean hasExtraLegroom;
+    Boolean hasBassinet;
+    Boolean isNearLavatory;
+    Boolean isNearGalley;
+    Boolean hasPowerOutlet;
+    Boolean hasTvScreen;
+    Boolean isWheelchairAccessible;
+    Boolean hasExtraWidth;
 
     Integer seatPitch;
     Integer seatWidth;
@@ -41,15 +45,16 @@ public class SeatResponse {
 
     Long seatMapId;
     String seatMapName;
-    Long carbinClassId;
+    Long cabinClassId;
     String cabinClassName;
 
     Instant createdAt;
     Instant updatedAt;
-
-    Boolean isBookable;
-    String fullPosition;
-
     String createdBy;
     String updatedBy;
+
+    Boolean isPremiumSeat;
+    Boolean isBookable;
+    String fullPosition;
+    String seatCharacteristics;
 }

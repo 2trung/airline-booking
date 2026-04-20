@@ -2,6 +2,7 @@ package com.airline.controller;
 
 import com.airline.dto.request.FlightMealRequest;
 import com.airline.dto.response.FlightMealResponse;
+import com.airline.exception.ResourceNotFoundException;
 import com.airline.service.FlightMealService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,54 +22,52 @@ public class FlightMealController {
     private final FlightMealService flightMealService;
 
     @PostMapping
-    public ResponseEntity<FlightMealResponse> createFlightMeal(@Valid @RequestBody FlightMealRequest flightMealRequest) {
-        log.info("REST request to create flight meal for flight ID: {}", flightMealRequest.getFlightId());
-        FlightMealResponse response = flightMealService.createFlightMeal(flightMealRequest);
+    public ResponseEntity<FlightMealResponse> createFlightMeal(@Valid @RequestBody FlightMealRequest request) throws ResourceNotFoundException {
+        FlightMealResponse response = flightMealService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/{flightMealId}")
-    public ResponseEntity<FlightMealResponse> getFlightMealById(@PathVariable Long flightMealId) {
-        log.info("REST request to get flight meal by ID: {}", flightMealId);
-        FlightMealResponse response = flightMealService.getFlightMealById(flightMealId);
-        return ResponseEntity.ok(response);
+    @PostMapping("/bulk")
+    public ResponseEntity<List<FlightMealResponse>> bulkCreateFlightMeals(@Valid @RequestBody List<FlightMealRequest> requests) throws ResourceNotFoundException {
+        List<FlightMealResponse> responses = flightMealService.bulkCreate(requests);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responses);
     }
 
-    @PutMapping("/{flightMealId}")
-    public ResponseEntity<FlightMealResponse> updateFlightMeal(
-            @PathVariable Long flightMealId,
-            @Valid @RequestBody FlightMealRequest flightMealRequest) {
-        log.info("REST request to update flight meal with ID: {}", flightMealId);
-        FlightMealResponse response = flightMealService.updateFlightMeal(flightMealId, flightMealRequest);
-        return ResponseEntity.ok(response);
+    @PostMapping("/price/total")
+    public ResponseEntity<Double> calculateMealPrice(@RequestBody List<Long> requests) {
+        double responses = flightMealService.calculateMealPrice(requests);
+        return ResponseEntity.status(HttpStatus.OK).body(responses);
     }
 
-    @DeleteMapping("/{flightMealId}")
-    public ResponseEntity<Void> deleteFlightMeal(@PathVariable Long flightMealId) {
-        log.info("REST request to delete flight meal with ID: {}", flightMealId);
-        flightMealService.deleteFlightMeal(flightMealId);
+    @GetMapping("/{id:\\d+}")
+    public ResponseEntity<FlightMealResponse> getFlightMealById(@PathVariable Long id) throws ResourceNotFoundException {
+        return ResponseEntity.ok(flightMealService.getById(id));
+    }
+
+    @GetMapping("/flight/{flightId:\\d+}")
+    public ResponseEntity<List<FlightMealResponse>> getMealsByFlightId(@PathVariable Long flightId) {
+        return ResponseEntity.ok(flightMealService.getByFlightId(flightId));
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<FlightMealResponse>> getMealsByIds(@RequestParam List<Long> Ids) {
+        return ResponseEntity.ok(flightMealService.getAllByIds(Ids));
+    }
+
+    @PutMapping("/{id:\\d+}")
+    public ResponseEntity<FlightMealResponse> updateFlightMeal(@PathVariable Long id, @Valid @RequestBody FlightMealRequest request) throws ResourceNotFoundException {
+        return ResponseEntity.ok(flightMealService.update(id, request));
+    }
+
+    @PatchMapping("/{id:\\d+}/availability")
+    public ResponseEntity<FlightMealResponse> updateFlightMealAvailability(@PathVariable Long id, @RequestParam Boolean available) throws ResourceNotFoundException {
+        return ResponseEntity.ok(flightMealService.updateAvailability(id, available));
+    }
+
+    @DeleteMapping("/{id:\\d+}")
+    public ResponseEntity<Void> deleteFlightMeal(@PathVariable Long id) throws ResourceNotFoundException {
+        flightMealService.delete(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/flight/{flightId}")
-    public ResponseEntity<List<FlightMealResponse>> getFlightMealsByFlightId(@PathVariable Long flightId) {
-        log.info("REST request to get flight meals by flight ID: {}", flightId);
-        List<FlightMealResponse> responses = flightMealService.getFlightMealsByFlightId(flightId);
-        return ResponseEntity.ok(responses);
-    }
-
-    @GetMapping("/batch")
-    public ResponseEntity<List<FlightMealResponse>> getFlightMeals(@RequestParam List<Long> ids) {
-        log.info("REST request to get flight meals by IDs: {}", ids);
-        List<FlightMealResponse> responses = flightMealService.getFlightMeals(ids);
-        return ResponseEntity.ok(responses);
-    }
-
-    @GetMapping("/price")
-    public ResponseEntity<Double> calculateMealPrice(@RequestParam List<Long> mealIds) {
-        log.info("REST request to calculate meal price for IDs: {}", mealIds);
-        Double totalPrice = flightMealService.calculateMealPrice(mealIds);
-        return ResponseEntity.ok(totalPrice);
     }
 }
 

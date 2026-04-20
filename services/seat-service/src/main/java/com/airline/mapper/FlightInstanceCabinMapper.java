@@ -2,31 +2,26 @@ package com.airline.mapper;
 
 import com.airline.dto.response.FlightInstanceCabinResponse;
 import com.airline.entity.FlightInstanceCabin;
-import com.airline.entity.SeatMap;
+
+import java.util.stream.Collectors;
 
 public class FlightInstanceCabinMapper {
-    public static FlightInstanceCabinResponse toResponse(FlightInstanceCabin flightInstanceCabin) {
-        if (flightInstanceCabin == null) {
-            return null;
-        }
-        return FlightInstanceCabinResponse
-                .builder()
-                .id(flightInstanceCabin.getId())
-                .flightInstanceId(flightInstanceCabin.getFlightInstanceId())
-                .cabinClassType(flightInstanceCabin.getCabinClass().getName())
-                .cabinClass(CabinClassMapper.toResponse(flightInstanceCabin.getCabinClass(), flightInstanceCabin.getCabinClass().getSeatMap()))
-                .seats(
-                        flightInstanceCabin.getSeatInstances().stream()
-                                .map(SeatInstanceMapper::toResponse)
-                                .toList()
-                )
-                .seatMap(flightInstanceCabin.getCabinClass() != null &&
-                        flightInstanceCabin.getCabinClass().getSeatMap() != null ?
-                        SeatMapMapper.toSimpleResponse(flightInstanceCabin.getCabinClass().getSeatMap())
-                        : null)
-                .totalSeats(flightInstanceCabin.getTotalSeats())
-                .bookedSeats(flightInstanceCabin.getBookedSeats())
-                .availableSeats(flightInstanceCabin.getAvailableSeats())
+    public static FlightInstanceCabinResponse toResponse(FlightInstanceCabin fic) {
+        if (fic == null) return null;
+        return FlightInstanceCabinResponse.builder()
+                .id(fic.getId())
+                .flightInstanceId(fic.getFlightInstanceId())
+                .cabinClassType(fic.getCabinClass() != null ? fic.getCabinClass().getName() : null)
+                .cabinClass(fic.getCabinClass() != null ?
+                        CabinClassMapper.toResponse(fic.getCabinClass(), fic.getCabinClass().getSeatMap()) : null)
+                .seats(fic.getSeats() != null ?
+                        fic.getSeats().stream().map(SeatInstanceMapper::toResponse)
+                                .collect(Collectors.toList()) : null)
+                .seatMap(fic.getCabinClass() != null && fic.getCabinClass().getSeatMap() != null ?
+                        SeatMapMapper.toSimpleResponse(fic.getCabinClass().getSeatMap()) : null)
+                .totalSeats(fic.getTotalSeats())
+                .bookedSeats(fic.getBookedSeats())
+                .availableSeats(fic.getAvailableSeats())
                 .build();
     }
 }

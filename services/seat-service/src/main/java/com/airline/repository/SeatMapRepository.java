@@ -2,18 +2,27 @@ package com.airline.repository;
 
 import com.airline.entity.SeatMap;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface SeatMapRepository extends JpaRepository<SeatMap, Long> {
 
-    Optional<SeatMap> findByCabinClass_Id(Long cabinClassId);
-
-    boolean existsByCabinClass_Id(Long cabinClassId);
-
+    List<SeatMap> findByAirlineId(Long airlineId);
+    SeatMap findByCabinClassId(Long cabinClassId);
     boolean existsByAirlineIdAndCabinClassIdAndName(Long airlineId, Long cabinClassId, String name);
+    boolean existsByAirlineIdAndNameAndIdNot(Long airlineId, String name, Long id);
 
-    boolean existsByCabinClass_IdAndIdNot(Long cabinClassId, Long id);
+
+    @Query("SELECT sm FROM SeatMap sm LEFT JOIN FETCH sm.cabinClass WHERE sm.id = :id")
+    Optional<SeatMap> findByIdWithDetails(@Param("id") Long id);
+
+
+
+    @Query("SELECT sm FROM SeatMap sm LEFT JOIN FETCH sm.seats WHERE sm.id = :id")
+    Optional<SeatMap> findByIdWithSeats(@Param("id") Long id);
 }

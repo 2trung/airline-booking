@@ -22,46 +22,45 @@ public class BaggagePolicyController {
 
     @PostMapping
     public ResponseEntity<BaggagePolicyResponse> createBaggagePolicy(
-            @Valid @RequestBody BaggagePolicyRequest baggagePolicyRequest) {
-        log.info("REST request to create baggage policy: {}", baggagePolicyRequest.getName());
-        BaggagePolicyResponse response = baggagePolicyService.createBaggagePolicy(baggagePolicyRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            @Valid @RequestBody BaggagePolicyRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(baggagePolicyService.createBaggagePolicy(request));
     }
 
-    @GetMapping("/{baggagePolicyId}")
-    public ResponseEntity<BaggagePolicyResponse> getBaggagePolicyById(@PathVariable Long baggagePolicyId) {
-        log.info("REST request to get baggage policy by ID: {}", baggagePolicyId);
-        BaggagePolicyResponse response = baggagePolicyService.getBaggagePolicyById(baggagePolicyId);
-        return ResponseEntity.ok(response);
+    @PostMapping("/bulk")
+    public ResponseEntity<List<BaggagePolicyResponse>> createBaggagePolicies(
+            @Valid @RequestBody List<BaggagePolicyRequest> requests) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(baggagePolicyService.createBaggagePolicies(requests));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<BaggagePolicyResponse> getBaggagePolicyById(@PathVariable Long id) {
+        return ResponseEntity.ok(baggagePolicyService.getBaggagePolicyById(id));
     }
 
     @GetMapping("/fare/{fareId}")
-    public ResponseEntity<BaggagePolicyResponse> getBaggagePolicyByFareId(@PathVariable Long fareId) {
-        log.info("REST request to get baggage policy by fare ID: {}", fareId);
-        BaggagePolicyResponse response = baggagePolicyService.getBaggagePolicyByFareId(fareId);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<BaggagePolicyResponse> getBaggagePolicyByFareId(
+            @PathVariable Long fareId) {
+        return ResponseEntity.ok(baggagePolicyService.getBaggagePolicyByFareId(fareId));
     }
 
     @GetMapping("/airline/{airlineId}")
-    public ResponseEntity<List<BaggagePolicyResponse>> getBaggagePoliciesByAirlineId(@PathVariable Long airlineId) {
-        log.info("REST request to get baggage policies by airline ID: {}", airlineId);
-        List<BaggagePolicyResponse> responses = baggagePolicyService.getBaggagePoliciesByAirlineId(airlineId);
-        return ResponseEntity.ok(responses);
+    public ResponseEntity<List<BaggagePolicyResponse>> getBaggagePoliciesByAirlineId(
+            @PathVariable Long airlineId) {
+        return ResponseEntity.ok(baggagePolicyService.getBaggagePoliciesByAirlineId(airlineId));
     }
 
-    @PutMapping("/{baggagePolicyId}")
+    @PutMapping("/{id}")
     public ResponseEntity<BaggagePolicyResponse> updateBaggagePolicy(
-            @PathVariable Long baggagePolicyId,
-            @Valid @RequestBody BaggagePolicyRequest baggagePolicyRequest) {
-        log.info("REST request to update baggage policy with ID: {}", baggagePolicyId);
-        BaggagePolicyResponse response = baggagePolicyService.updateBaggagePolicy(baggagePolicyId, baggagePolicyRequest);
-        return ResponseEntity.ok(response);
+            @PathVariable Long id,
+            @Valid @RequestBody BaggagePolicyRequest request) {
+        return ResponseEntity.ok(baggagePolicyService.updateBaggagePolicy(id, request));
     }
 
-    @DeleteMapping("/{baggagePolicyId}")
-    public ResponseEntity<Void> deleteBaggagePolicy(@PathVariable Long baggagePolicyId) {
-        log.info("REST request to delete baggage policy with ID: {}", baggagePolicyId);
-        baggagePolicyService.deleteBaggagePolicy(baggagePolicyId);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBaggagePolicy(@PathVariable Long id) {
+        baggagePolicyService.deleteBaggagePolicy(id);
         return ResponseEntity.noContent().build();
     }
 }

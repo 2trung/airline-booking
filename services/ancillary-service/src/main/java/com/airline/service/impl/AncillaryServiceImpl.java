@@ -2,8 +2,11 @@ package com.airline.service.impl;
 
 import com.airline.dto.request.AncillaryRequest;
 import com.airline.dto.response.AncillaryResponse;
+import com.airline.dto.response.InsuranceCoverageResponse;
 import com.airline.entity.Ancillary;
 import com.airline.entity.InsuranceCoverage;
+import com.airline.exception.ResourceNotFoundException;
+import com.airline.integration.AirlineIntegrationService;
 import com.airline.mapper.AncillaryMapper;
 import com.airline.mapper.InsuranceCoverageMapper;
 import com.airline.repository.AncillaryRepository;
@@ -14,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,73 +25,80 @@ import java.util.List;
 public class AncillaryServiceImpl implements AncillaryService {
     private final AncillaryRepository ancillaryRepository;
     private final InsuranceCoverageRepository insuranceCoverageRepository;
+    private final AirlineIntegrationService airlineIntegrationService;
 
     @Override
-    public AncillaryResponse createAncillary(Long airlineId, AncillaryRequest ancillaryRequest) {
-        Ancillary ancillary = Ancillary
-                .builder()
-                .name(ancillaryRequest.getName())
-                .type(ancillaryRequest.getType())
-                .subType(ancillaryRequest.getSubType())
-                .rfisc(ancillaryRequest.getRfisc())
-                .displayOrder(ancillaryRequest.getDisplayOrder())
+    public AncillaryResponse create(Long userId, AncillaryRequest request) {
+        Long airlineId=airlineIntegrationService.getAirlineIdForUser(userId);
+        Ancillary ancillary = Ancillary.builder()
+                .type(request.getType())
+                .subType(request.getSubType())
+                .rfisc(request.getRfisc())
+                .name(request.getName())
+                .description(request.getDescription())
+                .metadata(request.getMetadata())
+                .displayOrder(request.getDisplayOrder())
                 .airlineId(airlineId)
-                .metadata(ancillaryRequest.getMetadata())
-                .description(ancillaryRequest.getDescription())
                 .build();
-        ancillaryRepository.save(ancillary);
-        return AncillaryMapper.toResponse(ancillary, null);
+
+        Ancillary saved = ancillaryRepository.save(ancillary);
+        return AncillaryMapper.toResponse(saved, null);
     }
 
     @Override
-    public AncillaryResponse getAncillaryById(Long id) throws Exception {
-        Ancillary ancillary = ancillaryRepository.findById(id).orElseThrow(
-                () -> new Exception("Ancillary not found")
-        );
-        List<InsuranceCoverage> insuranceCoverages = insuranceCoverageRepository.findByAncillaryId(id);
-        return AncillaryMapper.toResponse(ancillary, insuranceCoverages.stream()
+    public AncillaryResponse getById(Long id) throws ResourceNotFoundException {
+        Ancillary ancillary = ancillaryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ancillary not found with id: " + id));
+
+        List<InsuranceCoverage> insuranceCoverages = insuranceCoverageRepository.findByAncillary(ancillary);
+        List<InsuranceCoverageResponse> coverageResponseList = insuranceCoverages.stream()
                 .map(InsuranceCoverageMapper::toResponse)
-                .toList());
-    }
-
-    @Override
-    public List<AncillaryResponse> getByAirlineId(Long airlineId) {
-        return ancillaryRepository.findByAirlineId(airlineId).stream()
-                .map(ancillary -> {
-                    List<InsuranceCoverage> insuranceCoverages = insuranceCoverageRepository.findByAncillaryId(ancillary.getId());
-                    return AncillaryMapper.toResponse(ancillary, insuranceCoverages.stream()
-                            .map(InsuranceCoverageMapper::toResponse)
-                            .toList());
-                })
                 .toList();
+
+        return AncillaryMapper.toResponse(ancillary, coverageResponseList);
     }
 
     @Override
-    public AncillaryResponse updateAncillary(Long id, AncillaryRequest ancillaryRequest) {
-        Ancillary ancillary = ancillaryRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("Ancillary not found")
-        );
+    public List<AncillaryResponse> getAllByAirlineId(Long userId) {
+        Long airlineId=airlineIntegrationService.getAirlineIdForUser(userId);
+        return ancillaryRepository.findByAirlineId(airlineId)
+                .stream()
+                .map(ancillary -> {
+                    List<InsuranceCoverage> insuranceCoverages = insuranceCoverageRepository
+                            .findByAncillary(ancillary);
+                    List<InsuranceCoverageResponse> coverageResponseList = insuranceCoverages.stream()
+                            .map(InsuranceCoverageMapper::toResponse)
+                            .toList();
+                    return AncillaryMapper.toResponse(ancillary, coverageResponseList);
+                })
+                .collect(Collectors.toList());
+    }
 
-        ancillary.setName(ancillaryRequest.getName());
-        ancillary.setType(ancillaryRequest.getType());
-        ancillary.setSubType(ancillaryRequest.getSubType());
-        ancillary.setRfisc(ancillaryRequest.getRfisc());
-        ancillary.setDisplayOrder(ancillaryRequest.getDisplayOrder());
-        ancillary.setMetadata(ancillaryRequest.getMetadata());
-        ancillary.setDescription(ancillaryRequest.getDescription());
-        ancillaryRepository.save(ancillary);
-        List<InsuranceCoverage> insuranceCoverages = insuranceCoverageRepository.findByAncillaryId(id);
+    @Override
+    public AncillaryResponse update(Long id, AncillaryRequest request) throws ResourceNotFoundException {
+        Ancillary ancillary = ancillaryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ancillary not found with id: " + id));
 
-        return AncillaryMapper.toResponse(ancillary, insuranceCoverages.stream()
+        ancillary.setType(request.getType());
+        ancillary.setSubType(request.getSubType());
+        ancillary.setRfisc(request.getRfisc());
+        ancillary.setName(request.getName());
+        ancillary.setDescription(request.getDescription());
+        ancillary.setMetadata(request.getMetadata());
+        ancillary.setDisplayOrder(request.getDisplayOrder());
+
+        Ancillary updated = ancillaryRepository.save(ancillary);
+
+        List<InsuranceCoverage> insuranceCoverages = insuranceCoverageRepository.findByAncillary(ancillary);
+        List<InsuranceCoverageResponse> coverageResponseList = insuranceCoverages.stream()
                 .map(InsuranceCoverageMapper::toResponse)
-                .toList());
+                .toList();
+
+        return AncillaryMapper.toResponse(updated, coverageResponseList);
     }
 
     @Override
-    public void deleteAncillary(Long id) {
-        Ancillary ancillary = ancillaryRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("Ancillary not found")
-        );
-        ancillaryRepository.delete(ancillary);
+    public void delete(Long id) {
+        ancillaryRepository.deleteById(id);
     }
 }

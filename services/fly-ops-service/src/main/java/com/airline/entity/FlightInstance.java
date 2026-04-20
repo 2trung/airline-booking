@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -17,42 +17,57 @@ import java.time.Instant;
 public class FlightInstance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private Long airlineId;
-
-    @ManyToOne
-    private Flight flight;
+    Long id;
 
     @Column(nullable = false)
-    private Long departureAirportId;
-    @Column(nullable = false)
-    private Long arrivalAirportId;
-    @Column(nullable = false)
-    private Long scheduleId;
+    Long airlineId;
 
-    private Instant departureTime;
-
-    private Instant arrivalTime;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(nullable = false)
+    Flight flight;
 
     @Column(nullable = false)
-    private Integer totalSeats;
+    Long departureAirportId;
 
     @Column(nullable = false)
-    private Integer availableSeats;
+    Long arrivalAirportId;
 
     @Column(nullable = false)
+    Long scheduleId;
+
+    @Column(nullable = false)
+    LocalDateTime departureDateTime;
+
+    @Column(nullable = false)
+    LocalDateTime arrivalDateTime;
+
+    @Column(nullable = false)
+    Integer totalSeats;
+
+    @Column(nullable = false)
+    Integer availableSeats;
+
     @Enumerated(EnumType.STRING)
-    private FlightStatus status;
+    @Column(nullable = false, length = 20)
+    FlightStatus status;
 
-    private Integer minAdvanceBookingDays;
-    private Integer maxAdvanceBookingDays;
+    Integer minAdvanceBookingDays;
+    Integer maxAdvanceBookingDays;
 
-    private Boolean isActive = true;
+    @Builder.Default
+    @Column(nullable = false)
+    Boolean isActive = true;
 
+    String terminal;
+    String gate;
+
+    @Version
+    Long version;
+
+    @Transient
     public String getFormattedDuration() {
-        if (departureTime != null && arrivalTime != null) {
-            long durationInMinutes = java.time.Duration.between(departureTime, arrivalTime).toMinutes();
+        if (departureDateTime != null && arrivalDateTime != null) {
+            long durationInMinutes = java.time.Duration.between(departureDateTime, arrivalDateTime).toMinutes();
             long hours = durationInMinutes / 60;
             long minutes = durationInMinutes % 60;
             return String.format("%02dh %02dmin", hours, minutes);

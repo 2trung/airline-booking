@@ -7,12 +7,12 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class PaymentLinkResponse {
-    Long id;
-    String providerPaymentId;
-    String checkOutUrl;
+
+    String paymentId;
+    String paymentUrl;
 }

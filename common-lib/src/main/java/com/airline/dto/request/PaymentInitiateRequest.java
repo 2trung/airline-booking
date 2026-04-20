@@ -10,22 +10,23 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class PaymentInitiateRequest {
-    @NotNull(message = "Payment gateway is required")
+
+    @NotNull(message = "User ID is mandatory")
     Long userId;
 
-    @NotNull(message = "Booking id is required")
+    @NotNull(message = "bookingId is required")
     Long bookingId;
 
-    @NotNull(message = "Payment gateway is required")
-    PaymentGateway paymentGateway;
+    @NotNull(message = "Payment gateway is mandatory")
+    PaymentGateway gateway;
 
-    @NotNull(message = "Amount is required")
-    @Positive(message = "Amount must be a positive value")
+    @NotNull(message = "Amount is mandatory")
+    @Positive(message = "Amount must be positive")
     Double amount;
 
     String description;

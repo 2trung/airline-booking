@@ -1,12 +1,14 @@
 package com.airline.entity;
 
+import com.airline.enums.RecurrenceType;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.DayOfWeek;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Set;
+import java.time.LocalTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -14,35 +16,47 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @Entity
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class FlightSchedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
 
-    @ManyToOne
-    private Flight flight;
-
-    @Column(nullable = false)
-    private Long departureAirportId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(nullable = false)
+    Flight flight;
 
     @Column(nullable = false)
-    private Long arrivalAirportId;
+    Long departureAirportId;
 
     @Column(nullable = false)
-    private Instant departureTime;
+    Long arrivalAirportId;
 
     @Column(nullable = false)
-    private Instant arrivalTime;
+    LocalTime departureTime;
 
     @Column(nullable = false)
-    private LocalDate startDate;
+    LocalTime arrivalTime;
 
     @Column(nullable = false)
-    private LocalDate endDate;
+    LocalDate startDate;
 
-    @ElementCollection()
+    @Column(nullable = false)
+    LocalDate endDate;
+
     @Enumerated(EnumType.STRING)
-    private Set<DayOfWeek> operatingDays;
+    RecurrenceType recurrenceType;
 
-    private Boolean isActive = true;
+    @ElementCollection
+    @CollectionTable(name = "schedule_operating_days", joinColumns = @JoinColumn(name = "schedule_id"))
+    @Column(name = "day_of_week")
+    @Enumerated(EnumType.STRING)
+    List<DayOfWeek> operatingDays;
+
+    @Builder.Default
+    @Column(nullable = false)
+    Boolean isActive = true;
+
+    @Version
+    Long version;
 }

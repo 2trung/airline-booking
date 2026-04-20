@@ -9,9 +9,9 @@ import lombok.experimental.FieldDefaults;
 import java.time.Instant;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class FareRulesResponse {
     Long id;
@@ -19,11 +19,11 @@ public class FareRulesResponse {
     Long fareId;
     Long airlineId;
     Boolean isRefundable;
-    Boolean isChangeable;
     Double changeFee;
     Double cancellationFee;
-    Integer refundableDays;
-    Integer changeableHours;
+    Integer refundDeadlineDays;
+    Integer changeDeadlineHours;
+    Boolean isChangeable;
     Instant createdAt;
     Instant updatedAt;
 }

@@ -3,6 +3,7 @@ package com.airline.entity;
 import com.airline.enums.CoverageType;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
@@ -12,18 +13,21 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Builder
 @Entity
 @EntityListeners(AuditingEntityListener.class)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class InsuranceCoverage {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
     Ancillary ancillary;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     CoverageType coverageType;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 200)
     String name;
 
     @Column(length = 1000)
@@ -32,11 +36,22 @@ public class InsuranceCoverage {
     @Column(nullable = false)
     Double coverageAmount;
 
+    @Column(length = 3)
+    @Builder.Default
+    String currency = "USD";
 
-    Boolean isFlat = false;
+    @Builder.Default
+    boolean isFlat = true;
+
+    @Column(length = 500)
     String claimCondition;
-    Integer displayOrder;
+
+    @Column(length = 100)
     String emergencyContact;
-    Boolean active;
+
+    Integer displayOrder;
+
+    @Builder.Default
+    boolean active = true;
 
 }

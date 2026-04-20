@@ -12,28 +12,29 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class AncillaryRequest {
+
     @NotNull(message = "Ancillary type is required")
     AncillaryType type;
 
-    @Size(max = 100, message = "Sub-type must not exceed 100 characters")
+    @Size(max = 100, message = "Sub-type cannot be longer than 100 characters")
     String subType;
 
-    @Size(max = 10, message = "RFISC must not exceed 10 characters")
+    @Size(max = 10, message = "RFISC code cannot be longer than 10 characters")
     String rfisc;
 
-    @NotBlank(message = "Ancillary name is required")
-    @Size(max = 200, message = "Ancillary name must not exceed 200 characters")
+    @NotBlank(message = "Name is required")
+    @Size(max = 200, message = "Name cannot be longer than 200 characters")
     String name;
 
-    @Size(max = 1000, message = "Ancillary description must not exceed 1000 characters")
+    @Size(max = 1000, message = "Description cannot be longer than 1000 characters")
     String description;
 
-    @Size(max = 500, message = "Ancillary icon URL must not exceed 500 characters")
+    @Size(max = 500, message = "Icon URL cannot be longer than 500 characters")
     String iconUrl;
 
     AncillaryMetadata metadata;

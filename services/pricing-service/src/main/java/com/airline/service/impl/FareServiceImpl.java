@@ -6,14 +6,16 @@ import com.airline.entity.Fare;
 import com.airline.mapper.FareMapper;
 import com.airline.repository.FareRepository;
 import com.airline.service.FareService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -22,116 +24,163 @@ import java.util.stream.Collectors;
 public class FareServiceImpl implements FareService {
 
     private final FareRepository fareRepository;
-    private final FareMapper fareMapper;
 
     @Override
-    @Transactional
-    public FareResponse createFare(FareRequest fareRequest) {
-        log.info("Creating fare for flight: {}, cabin class: {}", fareRequest.getFlightId(), fareRequest.getCabinClassId());
+    public FareResponse createFare(FareRequest request) {
         if (fareRepository.existsByFlightIdAndCabinClassIdAndName(
-                fareRequest.getFlightId(),
-                fareRequest.getCabinClassId(),
-                fareRequest.getName()
-        )) {
-            throw new RuntimeException("Fare already exists for flight: " + fareRequest.getFlightId() + ", cabin class: " + fareRequest.getCabinClassId());
+                request.getFlightId(), request.getCabinClassId(), request.getName())) {
+            throw new IllegalArgumentException(
+                    "Fare '" + request.getName() + "' already exists for this flight and cabin class");
         }
-        Fare fare = fareMapper.toEntity(fareRequest);
-        Fare savedFare = fareRepository.save(fare);
-        log.info("Fare created with ID: {}", savedFare.getId());
-        return fareMapper.toResponse(savedFare);
+        Fare fare = FareMapper.toEntity(request);
+        Fare saved = fareRepository.save(fare);
+        return FareMapper.toResponse(saved);
+    }
+
+    @Override
+    public List<FareResponse> createFares(List<FareRequest> requests) {
+        // Single DB call: fetch composite keys for all relevant flightIds
+        Set<Long> flightIds = requests.stream()
+                .map(FareRequest::getFlightId)
+                .collect(Collectors.toSet());
+        Set<String> existingKeys = fareRepository.findExistingFareKeys(flightIds);
+
+        List<Fare> toSave = requests.stream()
+                .filter(req -> !existingKeys.contains(
+                        req.getFlightId() + ":" + req.getCabinClassId() + ":" + req.getName()))
+                .map(FareMapper::toEntity)
+                .collect(Collectors.toList());
+
+        return fareRepository.saveAll(toSave).stream()
+                .map(FareMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public FareResponse getFareById(Long fareId) {
-        log.info("Fetching fare by ID: {}", fareId);
-        Fare fare = fareRepository.findById(fareId)
-                .orElseThrow(() -> new RuntimeException("Fare not found with ID: " + fareId));
-        return fareMapper.toResponse(fare);
+    @Cacheable(cacheNames = "fares", key = "#id")
+    public FareResponse getFareById(Long id) {
+        Fare fare = fareRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Fare not found with id: " + id));
+        return FareMapper.toResponse(fare);
     }
+
+//    @Override
+//    @Transactional(readOnly = true)
+//    public FareResponse getFareByIdWithDetails(Long id) {
+//        Fare fare = fareRepository.findByIdWithDetails(id)
+//                .orElseThrow(() -> new EntityNotFoundException("Fare not found with id: " + id));
+//        return FareMapper.toResponse(fare);
+//    }
+//
+//    @Override
+//    @Transactional(readOnly = true)
+//    @Cacheable(cacheNames = "faresByFlight", key = "#flightId")
+//    public List<FareResponse> getFaresByFlightId(Long flightId) {
+//        return fareRepository.findByFlightId(flightId).stream()
+//                .map(FareMapper::toResponse)
+//                .collect(Collectors.toList());
+//    }
+//
+//    @Override
+//    @Transactional(readOnly = true)
+//    public List<FareResponse> getFaresByFlightIdWithDetails(Long flightId) {
+//        return fareRepository.findByFlightIdWithDetails(flightId).stream()
+//                .map(FareMapper::toResponse)
+//                .collect(Collectors.toList());
+//    }
 
     @Override
     @Transactional(readOnly = true)
     public List<FareResponse> getFaresByFlightIdAndCabinClassId(Long flightId, Long cabinClassId) {
-        log.info("Fetching fares for flight: {}, cabin class: {}", flightId, cabinClassId);
-        List<Fare> fares = fareRepository.findByFlightIdAndCabinClassId(flightId, cabinClassId);
-        return fares.stream()
-                .map(fareMapper::toResponse)
+        return fareRepository.findByFlightIdAndCabinClassId(flightId, cabinClassId).stream()
+                .map(FareMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
-    @Transactional
-    public FareResponse updateFare(Long fareId, FareRequest fareRequest) {
-        log.info("Updating fare with ID: {}", fareId);
-        Fare fare = fareRepository.findById(fareId)
-                .orElseThrow(() -> new RuntimeException("Fare not found with ID: " + fareId));
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "fares", key = "#id"),
+            @CacheEvict(cacheNames = "faresByFlight", allEntries = true)
+    })
+    public FareResponse updateFare(Long id, FareRequest request) {
+        Fare existing = fareRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Fare not found with id: " + id));
 
         if (fareRepository.existsByFlightIdAndCabinClassIdAndNameAndIdNot(
-                fareRequest.getFlightId(),
-                fareRequest.getCabinClassId(),
-                fareRequest.getName(),
-                fareId
-        )) {
-            throw new RuntimeException("Fare already exists for flight: " + fareRequest.getFlightId() + ", cabin class: " + fareRequest.getCabinClassId());
+                request.getFlightId(), request.getCabinClassId(), request.getName(), id)) {
+            throw new IllegalArgumentException(
+                    "Fare '" + request.getName() + "' already exists for this flight and cabin class");
         }
-        fareMapper.updateEntity(fare, fareRequest);
-        Fare updatedFare = fareRepository.save(fare);
-        log.info("Fare updated successfully with ID: {}", fareId);
-        return fareMapper.toResponse(updatedFare);
+
+        FareMapper.updateEntity(request, existing);
+        Fare saved = fareRepository.save(existing);
+        return FareMapper.toResponse(saved);
     }
 
     @Override
-    @Transactional
-    public void deleteFare(Long fareId) {
-        log.info("Deleting fare with ID: {}", fareId);
-        if (!fareRepository.existsById(fareId)) {
-            throw new RuntimeException("Fare not found with ID: " + fareId);
-        }
-        fareRepository.deleteById(fareId);
-        log.info("Fare deleted successfully with ID: {}", fareId);
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "fares", key = "#id"),
+            @CacheEvict(cacheNames = "faresByFlight", allEntries = true)
+    })
+    public void deleteFare(Long id) {
+        Fare fare = fareRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Fare not found with id: " + id));
+        fareRepository.delete(fare);
+    }
+
+    @Override
+    public List<Fare> getFares() {
+        return fareRepository.findAll();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<FareResponse> getFares() {
-        log.info("Fetching all fares");
-        List<Fare> fares = fareRepository.findAll();
-        return fares.stream()
-                .map(fareMapper::toResponse)
-                .collect(Collectors.toList());
+    public Map<Long, FareResponse> getFaresByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) return Map.of();
+        return fareRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(Fare::getId, FareMapper::toResponse));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Map<Long, FareResponse> getLowestFareByFlight(List<Long> flightIds, Long cabinClassId) {
-        log.info("Fetching lowest fares for {} flights and cabin class: {}", flightIds.size(), cabinClassId);
-        List<Fare> fares = fareRepository.findLowestFaresByFlightIds(flightIds, cabinClassId);
+    public Map<Long, FareResponse> getLowestFarePerFlight(List<Long> flightIds, Long cabinClassId) {
+        if (flightIds == null || flightIds.isEmpty()) return Map.of();
 
-        Map<Long, FareResponse> lowestFaresMap = new HashMap<>();
-        for (Fare fare : fares) {
-            if (!lowestFaresMap.containsKey(fare.getFlightId())) {
-                lowestFaresMap.put(fare.getFlightId(), fareMapper.toResponse(fare));
-            }
-        }
+        List<Fare> fares = fareRepository.findByFlightIdInAndCabinClassId(flightIds, cabinClassId);
 
-        log.info("Found lowest fares for {} flights", lowestFaresMap.size());
-        return lowestFaresMap;
-    }
+        System.out.println("fares: -----------: " + fares.size());
 
-    @Override
-    @Transactional(readOnly = true)
-    public Map<Long, FareResponse> getFaresByIds(List<Long> fareIds) {
-        log.info("Fetching fares by IDs: {}", fareIds);
-        List<Fare> fares = fareRepository.findByIdIn(fareIds);
-
-        Map<Long, FareResponse> faresMap = fares.stream()
+        Map<Long,FareResponse> result= fares.stream()
                 .collect(Collectors.toMap(
-                        Fare::getId,
-                        fareMapper::toResponse
+                        Fare::getFlightId,
+                        fare -> fare,
+                        // merge: keep the fare with the lower total price
+                        (existing, candidate) ->
+                                candidate.getTotalPrice() < existing.getTotalPrice()
+                                        ? candidate : existing
+                ))
+                .entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> FareMapper.toResponse(e.getValue())
                 ));
+        System.out.println("result: -----------: lowest fare" + result);
+        return result;
+    }
 
-        log.info("Found {} fares", faresMap.size());
-        return faresMap;
+    @Override
+    public FareResponse getLowestFareForFlightAndCabin(Long flightId, Long cabinClassId) {
+
+        List<Fare> fares = fareRepository.findByFlightIdAndCabinClassId(
+                flightId,
+                cabinClassId
+        );
+
+        Fare lowestFare = fares.stream()
+                .min(Comparator.comparingDouble(Fare::getTotalPrice))
+                .orElse(null);
+
+        return FareMapper.toResponse(lowestFare);
     }
 }

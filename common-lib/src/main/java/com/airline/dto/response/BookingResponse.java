@@ -9,15 +9,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class BookingResponse {
+
     Long id;
     String bookingReference;
 
@@ -30,16 +31,12 @@ public class BookingResponse {
     String flightName;
     String departureAirport;
     String arrivalAirport;
-    Instant departureTime;
-    Instant arrivalTime;
+    LocalDateTime departureTime;
+    LocalDateTime arrivalTime;
 
     BookingStatus status;
-    Instant bookingDate;
-    Instant lastModified;
-
-    Long flightInstanceId;
-    Long airlineId;
-
+    LocalDateTime bookingDate;
+    LocalDateTime lastModified;
 
     List<PassengerResponse> passengers;
     List<SeatInstanceResponse> seatInstances;
@@ -48,25 +45,33 @@ public class BookingResponse {
     List<FlightMealResponse> meals;
     List<TicketResponse> tickets;
 
-
+    // Payment details
     PaymentStatus paymentStatus;
     String paymentLink;
 
     Long fareId;
     String fareName;
-    Double baseFare;
+    Double fareBaseFare;
     Double fareTaxesAndFees;
     Double fareAirlineFees;
+
+    FareResponse fare;
 
     Integer totalPassengers;
     Double totalAmount;
     String currency;
 
     String specialRequests;
+    Boolean requiresWheelchairAssistance;
+    Boolean requiresSpecialMeals;
 
+    // Flight duration and other derived information
     String flightDuration;
     Boolean isUpcoming;
     Boolean isPast;
+
+    String airlineName;
+    String airlineLogo;
 
     ContactInfo contactInfo;
 }

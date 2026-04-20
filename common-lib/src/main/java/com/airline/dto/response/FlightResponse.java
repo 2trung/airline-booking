@@ -5,26 +5,30 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class FlightResponse {
-    private Long id;
-    private String flightNumber;
-    private AirlineResponse airline;
-    private AircraftResponse aircraft;
-    private AirportResponse departureAirport;
-    private AirportResponse arrivalAirport;
-    private Instant arrivalTime;
-    private Instant departureTime;
-    private FlightStatus status;
-    private Double lowestPrice;
-    private Integer totalAvailableSeats;
 
-    private Instant createdAt;
-    private Instant updatedAt;
+    Long id;
+    String flightNumber;
+    AirlineResponse airline;
+    AircraftResponse aircraft;
+    AirportResponse departureAirport;
+    AirportResponse arrivalAirport;
+    LocalDateTime departureTime;
+    LocalDateTime arrivalTime;
+    FlightStatus status;
+    Double lowestPrice;
+    Integer totalAvailableSeats;
+
+    Instant createdAt;
+    Instant updatedAt;
 }
