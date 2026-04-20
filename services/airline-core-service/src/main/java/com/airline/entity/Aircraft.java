@@ -3,6 +3,9 @@ package com.airline.entity;
 import com.airline.enums.AircraftStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -13,86 +16,86 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 @Entity
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Aircraft {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(updatable = false, nullable = false)
+    Long id;
 
-    @Column(unique = true, nullable = false)
-    private String code;
+    @Column(nullable = false, unique = true, length = 20)
+    String code;
+
+    @Column(nullable = false, length = 50)
+    String model;
+
+    @Column(nullable = false, length = 50)
+    String manufacturer;
 
     @Column(nullable = false)
-    private String model;
-
-    @Column(nullable = false)
-    private String manufacturer;
-
-    @Column(nullable = false)
-    private Integer capacity;
-    @Column
-    private Integer economySeats = 0;
-    @Column
-    private Integer premiumEconomySeats = 0;
-    @Column
-    private Integer businessSeats = 0;
-    @Column
-    private Integer firstClassSeats = 0;
-    @Column
-    private Integer cruiseSpeed;
-    @Column
-    private Integer yearOfManufacture;
+    Integer seatingCapacity;
 
     @Column
-    private Integer rangeInKm;
+    Integer economySeats;
 
     @Column
-    private LocalDate registrationDate;
+    Integer premiumEconomySeats;
 
     @Column
-    private LocalDate nextMaintenanceDate;
+    Integer businessSeats;
 
     @Column
-    private Integer maxAltitudeInFeet;
+    Integer firstClassSeats;
+
+    @Column
+    Integer rangeKm;
+
+    @Column
+    Integer cruisingSpeedKmh;
+
+    @Column
+    Integer maxAltitudeFt;
+
+    @Column
+    Integer yearOfManufacture;
+
+    @Column
+    LocalDate registrationDate;
+
+    @Column
+    LocalDate nextMaintenanceDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private AircraftStatus status = AircraftStatus.ACTIVE;
-
-    @ManyToOne()
-    private Airline airline;
-
-    private Long currentAirportId;
-
-    @Column(updatable = false, nullable = false)
-    private Instant createdAt;
+    @Column(nullable = false, length = 20)
+    AircraftStatus status = AircraftStatus.ACTIVE;
 
     @Column(nullable = false)
-    private Instant updatedAt;
+    Boolean isAvailable = true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
+    Airline airline;
+
+    @Column(name = "current_airport_id")
+    Long currentAirportId;
+
+    @CreatedDate
+    @Column(name = "created_at", updatable = false, nullable = false)
+    Instant createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    Instant updatedAt;
 
     public Integer getTotalSeats() {
-        return economySeats + premiumEconomySeats + businessSeats + firstClassSeats;
+        return (economySeats != null ? economySeats : 0) + (premiumEconomySeats != null ? premiumEconomySeats : 0) + (businessSeats != null ? businessSeats : 0) + (firstClassSeats != null ? firstClassSeats : 0);
     }
 
     public boolean isOperational() {
-        return status == AircraftStatus.ACTIVE;
+        return AircraftStatus.ACTIVE.equals(status) && Boolean.TRUE.equals(isAvailable);
     }
 
     public boolean requiresMaintenance() {
         return nextMaintenanceDate != null && nextMaintenanceDate.isBefore(LocalDate.now().plusWeeks(2));
-    }
-
-    @PrePersist
-    public void onCreate() {
-        Instant now = Instant.now();
-        createdAt = now;
-        updatedAt = now;
-        if (status == null) {
-            status = AircraftStatus.ACTIVE;
-        }
-    }
-
-    @PreUpdate
-    public void onUpdate() {
-        updatedAt = Instant.now();
     }
 }

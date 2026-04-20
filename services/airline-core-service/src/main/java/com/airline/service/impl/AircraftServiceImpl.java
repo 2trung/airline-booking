@@ -4,18 +4,17 @@ import com.airline.dto.request.AircraftRequest;
 import com.airline.dto.response.AircraftResponse;
 import com.airline.entity.Aircraft;
 import com.airline.entity.Airline;
-import com.airline.exception.BadRequestException;
 import com.airline.exception.ResourceNotFoundException;
 import com.airline.mapper.AircraftMapper;
 import com.airline.repository.AircraftRepository;
 import com.airline.repository.AirlineRepository;
 import com.airline.service.AircraftService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -27,97 +26,82 @@ public class AircraftServiceImpl implements AircraftService {
     private final AirlineRepository airlineRepository;
 
     @Override
-    public AircraftResponse createAircraft(AircraftRequest aircraftRequest) {
-        validateCreate(aircraftRequest);
-        Airline airline = getAirlineForOwner(aircraftRequest.getOwnerId());
+    public AircraftResponse createAircraft(AircraftRequest request, Long ownerId) {
+        Airline airline = airlineRepository.findByOwnerId(ownerId)
+                .orElseThrow(() -> new EntityNotFoundException("Airline not found for owner: " + ownerId));
 
-        Aircraft aircraft = AircraftMapper.toEntity(aircraftRequest);
-        aircraft.setAirline(airline);
+        Aircraft aircraft = AircraftMapper.toEntity(request, airline);
 
+        if (aircraftRepository.existsByCode(aircraft.getCode())) {
+            throw new IllegalArgumentException("Aircraft with code " + aircraft.getCode() + " already exists");
+        }
+
+        validateAircraftData(aircraft);
         return AircraftMapper.toResponse(aircraftRepository.save(aircraft));
     }
 
     @Override
-    public AircraftResponse updateAircraft(Long id, AircraftRequest aircraftRequest) {
-        Aircraft existing = findAircraftById(id);
-        validateUpdate(id, aircraftRequest);
-
-        Airline airline = getAirlineForOwner(aircraftRequest.getOwnerId());
-        AircraftMapper.updateEntityFromRequest(existing, aircraftRequest);
-        existing.setAirline(airline);
-
-        return AircraftMapper.toResponse(aircraftRepository.save(existing));
+    public AircraftResponse getAircraftById(Long id) throws ResourceNotFoundException {
+        Aircraft aircraft = aircraftRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Aircraft not found with id: " + id));
+        return AircraftMapper.toResponse(aircraft);
     }
 
     @Override
-    public void deleteAircraft(Long id) {
-        Aircraft aircraft = findAircraftById(id);
-        aircraftRepository.delete(aircraft);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public AircraftResponse getAircraftById(Long id) {
-        return AircraftMapper.toResponse(findAircraftById(id));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<AircraftResponse> getAircraftsByOwnerId(Long ownerId) {
-        return aircraftRepository.findByAirlineOwnerId(ownerId)
+    public List<AircraftResponse> listAllAircraftsByOwner(Long ownerId) {
+        Airline airline = airlineRepository.findByOwnerId(ownerId)
+                .orElseThrow(() -> new EntityNotFoundException("Airline not found for owner: " + ownerId));
+        return aircraftRepository.findByAirline(airline)
                 .stream()
                 .map(AircraftMapper::toResponse)
                 .toList();
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Page<AircraftResponse> getAircraftsByOwnerId(Long ownerId, PageRequest pageRequest) {
-        return aircraftRepository.findByAirlineOwnerId(ownerId, pageRequest)
-                .map(AircraftMapper::toResponse);
+    public AircraftResponse updateAircraft(Long id, AircraftRequest request, Long ownerId)
+            throws ResourceNotFoundException {
+        Airline airline = airlineRepository.findByOwnerId(ownerId)
+                .orElseThrow(() -> new EntityNotFoundException("Airline not found for owner: " + ownerId));
+
+        Aircraft aircraft = aircraftRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Aircraft not found with id: " + id));
+
+        String oldCode = aircraft.getCode();
+        AircraftMapper.updateEntity(aircraft, request, airline);
+
+        if (!oldCode.equals(request.getCode()) && aircraftRepository.existsByCode(request.getCode())) {
+            throw new IllegalArgumentException("Aircraft with code " + request.getCode() + " already exists");
+        }
+
+        validateAircraftData(aircraft);
+        return AircraftMapper.toResponse(aircraftRepository.save(aircraft));
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Page<AircraftResponse> getAllAircrafts(PageRequest pageRequest) {
-        return aircraftRepository.findAll(pageRequest).map(AircraftMapper::toResponse);
-    }
-
-    private Aircraft findAircraftById(Long id) {
-        return aircraftRepository.findById(id)
+    public void deleteAircraft(Long id) throws ResourceNotFoundException {
+        Aircraft aircraft = aircraftRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Aircraft not found with id: " + id));
+        aircraftRepository.delete(aircraft);
     }
 
-    private Airline getAirlineForOwner(Long ownerId) {
-        return airlineRepository.findFirstByOwnerId(ownerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Airline not found for owner id: " + ownerId));
-    }
-
-    private void validateCreate(AircraftRequest request) {
-        if (request == null) {
-            throw new BadRequestException("Aircraft request body is required");
+    private void validateAircraftData(Aircraft aircraft) {
+        if (aircraft.getSeatingCapacity() != null && aircraft.getSeatingCapacity() <= 0) {
+            throw new IllegalArgumentException("Seating capacity must be positive");
         }
 
-        if (request.getOwnerId() == null) {
-            throw new BadRequestException("Owner id is required");
+        int totalSpecifiedSeats = (aircraft.getEconomySeats() != null ? aircraft.getEconomySeats() : 0) +
+                (aircraft.getPremiumEconomySeats() != null ? aircraft.getPremiumEconomySeats() : 0) +
+                (aircraft.getBusinessSeats() != null ? aircraft.getBusinessSeats() : 0) +
+                (aircraft.getFirstClassSeats() != null ? aircraft.getFirstClassSeats() : 0);
+
+        if (totalSpecifiedSeats > (aircraft.getSeatingCapacity() != null ? aircraft.getSeatingCapacity() : 0)) {
+            throw new IllegalArgumentException("Total specified seats exceed aircraft seating capacity");
         }
 
-        if (aircraftRepository.existsByCodeIgnoreCase(request.getCode())) {
-            throw new BadRequestException("Aircraft with code " + request.getCode() + " already exists");
-        }
-    }
-
-    private void validateUpdate(Long id, AircraftRequest request) {
-        if (request == null) {
-            throw new BadRequestException("Aircraft request body is required");
-        }
-
-        if (request.getOwnerId() == null) {
-            throw new BadRequestException("Owner id is required");
-        }
-
-        if (aircraftRepository.existsByCodeIgnoreCaseAndIdNot(request.getCode(), id)) {
-            throw new BadRequestException("Aircraft with code " + request.getCode() + " already exists");
+        if (aircraft.getYearOfManufacture() != null &&
+                (aircraft.getYearOfManufacture() < 1900
+                        || aircraft.getYearOfManufacture() > LocalDate.now().getYear())) {
+            throw new IllegalArgumentException("Invalid year of manufacture");
         }
     }
 }

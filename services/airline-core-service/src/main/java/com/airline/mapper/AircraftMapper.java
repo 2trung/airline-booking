@@ -3,93 +3,93 @@ package com.airline.mapper;
 import com.airline.dto.request.AircraftRequest;
 import com.airline.dto.response.AircraftResponse;
 import com.airline.entity.Aircraft;
+import com.airline.entity.Airline;
 
 public class AircraftMapper {
 
-    private AircraftMapper() {
-    }
-
-    public static Aircraft toEntity(AircraftRequest request) {
-        if (request == null) {
-            return null;
-        }
+    public static Aircraft toEntity(AircraftRequest request, Airline airline) {
+        if (request == null) return null;
 
         return Aircraft.builder()
-                .code(normalizeCode(request.getCode()))
+                .code(request.getCode())
                 .model(request.getModel())
                 .manufacturer(request.getManufacturer())
-                .capacity(request.getSeatingCapacity())
-                .economySeats(defaultZero(request.getEconomySeats()))
-                .premiumEconomySeats(defaultZero(request.getPremiumEconomySeats()))
-                .businessSeats(defaultZero(request.getBusinessSeats()))
-                .firstClassSeats(defaultZero(request.getFirstClassSeats()))
-                .cruiseSpeed(request.getCruiseSpeed())
+                .seatingCapacity(request.getSeatingCapacity())
+                .economySeats(request.getEconomySeats())
+                .premiumEconomySeats(request.getPremiumEconomySeats())
+                .businessSeats(request.getBusinessSeats())
+                .firstClassSeats(request.getFirstClassSeats())
+                .rangeKm(request.getRangeKm())
+                .cruisingSpeedKmh(request.getCruisingSpeedKmh())
+                .maxAltitudeFt(request.getMaxAltitudeFt())
                 .yearOfManufacture(request.getYearOfManufacture())
-                .rangeInKm(request.getRangeInKm())
-                .maxAltitudeInFeet(request.getMaxAltitudeInFeet())
+                .registrationDate(request.getRegistrationDate())
+                .nextMaintenanceDate(request.getNextMaintenanceDate())
+                .status(request.getStatus())
+                .isAvailable(request.getIsAvailable())
+                .airline(airline)
                 .currentAirportId(request.getCurrentAirportId())
                 .build();
     }
 
-    public static void updateEntityFromRequest(Aircraft aircraft, AircraftRequest request) {
-        if (aircraft == null || request == null) {
-            return;
-        }
-
-        aircraft.setCode(normalizeCode(request.getCode()));
-        aircraft.setModel(request.getModel());
-        aircraft.setManufacturer(request.getManufacturer());
-        aircraft.setCapacity(request.getSeatingCapacity());
-        aircraft.setEconomySeats(defaultZero(request.getEconomySeats()));
-        aircraft.setPremiumEconomySeats(defaultZero(request.getPremiumEconomySeats()));
-        aircraft.setBusinessSeats(defaultZero(request.getBusinessSeats()));
-        aircraft.setFirstClassSeats(defaultZero(request.getFirstClassSeats()));
-        aircraft.setCruiseSpeed(request.getCruiseSpeed());
-        aircraft.setYearOfManufacture(request.getYearOfManufacture());
-        aircraft.setRangeInKm(request.getRangeInKm());
-        aircraft.setMaxAltitudeInFeet(request.getMaxAltitudeInFeet());
-        aircraft.setCurrentAirportId(request.getCurrentAirportId());
-    }
-
     public static AircraftResponse toResponse(Aircraft aircraft) {
-        if (aircraft == null) {
-            return null;
-        }
+        if (aircraft == null) return null;
 
         return AircraftResponse.builder()
                 .id(aircraft.getId())
-                .model(aircraft.getModel())
                 .code(aircraft.getCode())
+                .model(aircraft.getModel())
                 .manufacturer(aircraft.getManufacturer())
-                .seatingCapacity(aircraft.getCapacity())
+                .seatingCapacity(aircraft.getSeatingCapacity())
                 .economySeats(aircraft.getEconomySeats())
                 .premiumEconomySeats(aircraft.getPremiumEconomySeats())
                 .businessSeats(aircraft.getBusinessSeats())
                 .firstClassSeats(aircraft.getFirstClassSeats())
-                .rangeInKm(aircraft.getRangeInKm())
-                .cruiseSpeed(aircraft.getCruiseSpeed())
+                .rangeKm(aircraft.getRangeKm())
+                .cruisingSpeedKmh(aircraft.getCruisingSpeedKmh())
+                .maxAltitudeFt(aircraft.getMaxAltitudeFt())
                 .yearOfManufacture(aircraft.getYearOfManufacture())
                 .registrationDate(aircraft.getRegistrationDate())
                 .nextMaintenanceDate(aircraft.getNextMaintenanceDate())
                 .status(aircraft.getStatus())
-                .airlineId(aircraft.getAirline() == null ? null : aircraft.getAirline().getId())
-                .airlineName(aircraft.getAirline() == null ? null : aircraft.getAirline().getName())
-                .airlineIataCode(aircraft.getAirline() == null ? null : aircraft.getAirline().getIataCode())
+                .isAvailable(aircraft.getIsAvailable())
+                // Airline info
+                .airlineId(aircraft.getAirline() != null ? aircraft.getAirline().getId() : null)
+                .airlineName(aircraft.getAirline() != null ? aircraft.getAirline().getName() : null)
+                .airlineIataCode(aircraft.getAirline() != null ? aircraft.getAirline().getIataCode() : null)
+                // Airport is cross-service — only ID available here
                 .currentAirportId(aircraft.getCurrentAirportId())
+                // Computed fields
                 .totalSeats(aircraft.getTotalSeats())
                 .requiresMaintenance(aircraft.requiresMaintenance())
                 .isOperational(aircraft.isOperational())
+                // Audit
                 .createdAt(aircraft.getCreatedAt())
                 .updatedAt(aircraft.getUpdatedAt())
                 .build();
     }
 
-    private static int defaultZero(Integer value) {
-        return value == null ? 0 : value;
-    }
+    public static void updateEntity(Aircraft aircraft, AircraftRequest request, Airline airline) {
+        if (aircraft == null || request == null) return;
 
-    private static String normalizeCode(String code) {
-        return code == null ? null : code.trim().toUpperCase();
+        aircraft.setCode(request.getCode());
+        aircraft.setModel(request.getModel());
+        aircraft.setManufacturer(request.getManufacturer());
+        aircraft.setSeatingCapacity(request.getSeatingCapacity());
+        aircraft.setEconomySeats(request.getEconomySeats());
+        aircraft.setPremiumEconomySeats(request.getPremiumEconomySeats());
+        aircraft.setBusinessSeats(request.getBusinessSeats());
+        aircraft.setFirstClassSeats(request.getFirstClassSeats());
+        aircraft.setRangeKm(request.getRangeKm());
+        aircraft.setCruisingSpeedKmh(request.getCruisingSpeedKmh());
+        aircraft.setMaxAltitudeFt(request.getMaxAltitudeFt());
+        aircraft.setYearOfManufacture(request.getYearOfManufacture());
+        aircraft.setRegistrationDate(request.getRegistrationDate());
+        aircraft.setNextMaintenanceDate(request.getNextMaintenanceDate());
+        aircraft.setStatus(request.getStatus());
+        aircraft.setIsAvailable(request.getIsAvailable());
+        aircraft.setAirline(airline);
+        aircraft.setCurrentAirportId(request.getCurrentAirportId());
     }
 }
 

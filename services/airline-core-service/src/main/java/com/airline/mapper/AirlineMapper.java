@@ -1,99 +1,90 @@
 package com.airline.mapper;
 
 import com.airline.dto.request.AirlineRequest;
-import com.airline.dto.response.AirlineDropdownItem;
 import com.airline.dto.response.AirlineResponse;
 import com.airline.embeddable.Support;
 import com.airline.entity.Airline;
-import com.airline.enums.AirlineStatus;
 
 public class AirlineMapper {
 
-    private AirlineMapper() {
-    }
+    public static Airline toEntity(AirlineRequest request, Long ownerId) {
+        if (request == null) return null;
 
-    public static Airline toEntity(AirlineRequest request) {
-        if (request == null) {
-            return null;
-        }
-
-        return Airline.builder()
-                .iataCode(normalizeCode(request.getIataCode()))
-                .icaoCode(normalizeCode(request.getIcaoCode()))
+        Airline airline = Airline.builder()
+                .iataCode(request.getIataCode())
+                .icaoCode(request.getIcaoCode())
                 .name(request.getName())
                 .alias(request.getAlias())
+                .country(request.getCountry())
                 .logoUrl(request.getLogoUrl())
                 .website(request.getWebsite())
-                .status(request.getStatus() != null ? request.getStatus() : AirlineStatus.ACTIVE)
-                .headquartersCityId(request.getHeadquartersCityId())
-                .support(Support.builder()
-                        .email(request.getSupportEmail())
-                        .phone(request.getSupportPhone())
-                        .hours(request.getSupportHours())
-                        .build())
+                .status(request.getStatus())
                 .alliance(request.getAlliance())
+                .headquartersCityId(request.getHeadquartersCityId())
+                .ownerId(ownerId)
                 .build();
+
+        if (request.getSupportEmail() != null || request.getSupportPhone() != null
+                || request.getSupportHours() != null) {
+            airline.setSupport(Support.builder()
+                    .email(request.getSupportEmail())
+                    .phone(request.getSupportPhone())
+                    .hours(request.getSupportHours())
+                    .build());
+        }
+
+        return airline;
     }
 
     public static AirlineResponse toResponse(Airline airline) {
-        if (airline == null) {
-            return null;
-        }
+        if (airline == null) return null;
 
         return AirlineResponse.builder()
                 .id(airline.getId())
-                .name(airline.getName())
                 .iataCode(airline.getIataCode())
                 .icaoCode(airline.getIcaoCode())
+                .name(airline.getName())
                 .alias(airline.getAlias())
+                .country(airline.getCountry())
                 .logoUrl(airline.getLogoUrl())
+                .website(airline.getWebsite())
                 .status(airline.getStatus())
                 .alliance(airline.getAlliance())
+                .support(airline.getSupport())
+                .headquartersCityId(airline.getHeadquartersCityId())
+                .supportEmail(airline.getSupport() != null ? airline.getSupport().getEmail() : null)
+                .supportPhone(airline.getSupport() != null ? airline.getSupport().getPhone() : null)
+                .supportHours(airline.getSupport() != null ? airline.getSupport().getHours() : null)
+                .support(airline.getSupport())
                 .createdAt(airline.getCreatedAt())
                 .updatedAt(airline.getUpdatedAt())
                 .ownerId(airline.getOwnerId())
-                .updatedBy(airline.getUpdatedById() == null ? null : String.valueOf(airline.getUpdatedById()))
-                .support(airline.getSupport())
+                .updatedById(airline.getUpdatedById())
                 .build();
     }
 
-    public static AirlineDropdownItem toDropdownItem(Airline airline) {
-        if (airline == null) {
-            return null;
-        }
 
-        return AirlineDropdownItem.builder()
-                .id(airline.getId())
-                .name(airline.getName())
-                .iataCode(airline.getIataCode())
-                .icaoCode(airline.getIcaoCode())
-                .logoUrl(airline.getLogoUrl())
-                .build();
-    }
 
-    public static void updateEntityFromRequest(Airline airline, AirlineRequest request) {
-        if (request == null || airline == null) {
-            return;
-        }
+    public static void updateEntity(Airline airline, AirlineRequest request) {
+        if (airline == null || request == null) return;
 
-        airline.setIataCode(normalizeCode(request.getIataCode()));
-        airline.setIcaoCode(normalizeCode(request.getIcaoCode()));
+        airline.setIataCode(request.getIataCode());
+        airline.setIcaoCode(request.getIcaoCode());
         airline.setName(request.getName());
         airline.setAlias(request.getAlias());
+        airline.setCountry(request.getCountry());
         airline.setLogoUrl(request.getLogoUrl());
         airline.setWebsite(request.getWebsite());
-        airline.setStatus(request.getStatus() != null ? request.getStatus() : airline.getStatus());
-        airline.setHeadquartersCityId(request.getHeadquartersCityId());
+        airline.setStatus(request.getStatus());
         airline.setAlliance(request.getAlliance());
-        airline.setSupport(Support.builder()
-                .email(request.getSupportEmail())
-                .phone(request.getSupportPhone())
-                .hours(request.getSupportHours())
-                .build());
-    }
+        airline.setHeadquartersCityId(request.getHeadquartersCityId());
 
-    private static String normalizeCode(String code) {
-        return code == null ? null : code.trim().toUpperCase();
+        if (airline.getSupport() == null) {
+            airline.setSupport(new Support());
+        }
+        airline.getSupport().setEmail(request.getSupportEmail());
+        airline.getSupport().setPhone(request.getSupportPhone());
+        airline.getSupport().setHours(request.getSupportHours());
     }
 }
 

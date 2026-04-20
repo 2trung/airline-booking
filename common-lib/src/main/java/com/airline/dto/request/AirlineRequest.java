@@ -3,35 +3,41 @@ package com.airline.dto.request;
 import com.airline.enums.AirlineStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class AirlineRequest {
-    @NotBlank(message = "IATA code is required")
+    @NotBlank
     @Size(min = 2, max = 2, message = "IATA code must be exactly 2 characters")
-    private String iataCode;
+    String iataCode;
 
-    @NotBlank(message = "ICAO code is required")
+    @NotBlank
     @Size(min = 3, max = 3, message = "ICAO code must be exactly 3 characters")
-    private String icaoCode;
+    String icaoCode;
 
-    @NotBlank(message = "Airline name is required")
-    private String name;
-    private String alias;
+    @NotBlank
+    String name;
 
-    private String logoUrl;
+    String alias;
 
-    private String website;
-    private AirlineStatus status;
-    private Long headquartersCityId;
-    private String supportEmail;
-    private String supportPhone;
-    private String supportHours;
-    private String alliance;
+    @NotBlank
+    String country;
+
+    String logoUrl;
+
+    String website;
+
+    AirlineStatus status;
+
+    String alliance;
+
+    Long headquartersCityId;
+
+    String supportEmail;
+    String supportPhone;
+    String supportHours;
 }

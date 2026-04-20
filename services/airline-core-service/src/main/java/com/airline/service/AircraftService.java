@@ -2,25 +2,21 @@ package com.airline.service;
 
 import com.airline.dto.request.AircraftRequest;
 import com.airline.dto.response.AircraftResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import com.airline.exception.ResourceNotFoundException;
 
 import java.util.List;
 
 public interface AircraftService {
 
-    AircraftResponse createAircraft(AircraftRequest aircraftRequest);
+    AircraftResponse getAircraftById(Long id) throws ResourceNotFoundException;
 
-    AircraftResponse updateAircraft(Long id, AircraftRequest aircraftRequest);
+    List<AircraftResponse> listAllAircraftsByOwner(Long ownerId);
 
-    void deleteAircraft(Long id);
+    AircraftResponse createAircraft(AircraftRequest request,
+                                    Long ownerId);
 
-    AircraftResponse getAircraftById(Long id);
+    AircraftResponse updateAircraft(Long id, AircraftRequest request, Long ownerId) throws ResourceNotFoundException;
 
-    List<AircraftResponse> getAircraftsByOwnerId(Long ownerId);
-
-    Page<AircraftResponse> getAircraftsByOwnerId(Long ownerId, PageRequest pageRequest);
-
-    Page<AircraftResponse> getAllAircrafts(PageRequest pageRequest);
+    void deleteAircraft(Long id) throws ResourceNotFoundException;
 
 }

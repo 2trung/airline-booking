@@ -1,59 +1,65 @@
 package com.airline.dto.request;
 
+import com.airline.enums.AircraftStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
+
+import java.time.LocalDate;
 
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class AircraftRequest {
-
     @NotBlank(message = "Aircraft code is required")
-    private String code;
+    String code;
 
     @NotBlank(message = "Aircraft model is required")
-    private String model;
+    String model;
 
-    @NotBlank(message = "Aircraft manufacturer is required")
-    private String manufacturer;
+    @NotBlank(message = "Manufacturer is required")
+    String manufacturer;
 
     @NotNull(message = "Seating capacity is required")
-    @Positive(message = "Seating capacity must be a positive number")
-    private Integer seatingCapacity;
+    @Positive(message = "Seating capacity must be positive")
+    Integer seatingCapacity;
 
-    @Positive(message = "Economy seats must be a positive number")
-    private Integer economySeats;
+    @Positive(message = "Economy seats must be positive")
+    Integer economySeats;
 
-    @Positive(message = "Premium economy seats must be a positive number")
-    private Integer premiumEconomySeats;
+    @Positive(message = "Premium economy seats must be positive")
+    Integer premiumEconomySeats;
 
-    @Positive(message = "Business seats must be a positive number")
-    private Integer businessSeats;
+    @Positive(message = "Business seats must be positive")
+    Integer businessSeats;
 
-    @Positive(message = "First class seats must be a positive number")
-    private Integer firstClassSeats;
+    @Positive(message = "First class seats must be positive")
+    Integer firstClassSeats;
 
-    @Positive(message = "Cruise speed must be a positive number")
-    private Integer cruiseSpeed;
+    @Positive(message = "Range must be positive")
+    Integer rangeKm;
 
-    @Positive(message = "Year of manufacture must be a positive number")
-    private Integer yearOfManufacture;
+    @Positive(message = "Cruising speed must be positive")
+    Integer cruisingSpeedKmh;
 
-    @Positive(message = "Range in km must be a positive number")
-    private Integer rangeInKm;
+    @Positive(message = "Maximum altitude must be positive")
+    Integer maxAltitudeFt;
 
-    @Positive(message = "Max altitude in feet must be a positive number")
-    private Integer maxAltitudeInFeet;
+    @Positive(message = "Year of manufacture must be positive")
+    Integer yearOfManufacture;
 
-    @NotNull(message = "Owner id is required")
-    private Long ownerId;
+    LocalDate registrationDate;
+    LocalDate nextMaintenanceDate;
 
-    private Long currentAirportId;
+    @NotNull(message = "Status is required")
+    AircraftStatus status;
+
+    @NotNull(message = "Availability status is required")
+    Boolean isAvailable;
+
+    Long currentAirportId;
 
 }

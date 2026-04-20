@@ -1,20 +1,30 @@
 package com.airline.repository;
 
 import com.airline.entity.Aircraft;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.airline.entity.Airline;
+import com.airline.enums.AircraftStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface AircraftRepository extends JpaRepository<Aircraft, Long> {
 
-    boolean existsByCodeIgnoreCase(String code);
+    Optional<Aircraft> findByCode(String code);
 
-    boolean existsByCodeIgnoreCaseAndIdNot(String code, Long id);
+    boolean existsByCode(String code);
 
-    List<Aircraft> findByAirlineOwnerId(Long ownerId);
+    List<Aircraft> findByStatus(AircraftStatus status);
 
-    Page<Aircraft> findByAirlineOwnerId(Long ownerId, Pageable pageable);
+    List<Aircraft> findByAirline(Airline airline);
+
+    List<Aircraft> findByAirlineAndStatus(Airline airline, AircraftStatus status);
+
+    List<Aircraft> findByAirlineAndStatusAndIsAvailable(Airline airline, AircraftStatus status, Boolean isAvailable);
+
+    List<Aircraft> findByModelContainingIgnoreCase(String model);
+
+    List<Aircraft> findByNextMaintenanceDateBefore(LocalDate date);
 }
 

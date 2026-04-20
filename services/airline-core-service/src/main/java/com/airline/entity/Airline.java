@@ -4,6 +4,8 @@ import com.airline.embeddable.Support;
 import com.airline.enums.AirlineStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.Instant;
 
@@ -16,57 +18,50 @@ import java.time.Instant;
 public class Airline {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(updatable = false, nullable = false)
+    Long id;
 
-    @Column(unique = true, nullable = false, length = 2)
-    private String iataCode;
+    @Column(length = 2, nullable = false, unique = true)
+    String iataCode;
 
-    @Column(unique = true, nullable = false, length = 3)
-    private String icaoCode;
+    @Column(length = 3, nullable = false, unique = true)
+    String icaoCode;
 
     @Column(nullable = false)
-    private String name;
+    String name;
 
-    private String alias;
+    String alias;
 
-    private String logoUrl;
+    @Column(nullable = false)
+    String country;
 
-    private String website;
+    String logoUrl;
+
+    String website;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private AirlineStatus status = AirlineStatus.ACTIVE;
+    @Column(nullable = false, length = 20)
+    AirlineStatus status = AirlineStatus.ACTIVE;
 
-    private String alliance;
-
-    private Long headquartersCityId;
-
-    @Column(nullable = false)
-    private Long ownerId;
-
-    private Long updatedById;
+    String alliance;
 
     @Embedded
-    private Support support;
+    Support support;
 
+    @Column(name = "headquarters_city_id")
+    Long headquartersCityId;
+
+    @Column(name = "owner_id", updatable = false, nullable = false)
+    Long ownerId;
+
+    @Column
+    Long updatedById;
+
+    @CreatedDate
     @Column(updatable = false, nullable = false)
-    private Instant createdAt;
+    Instant createdAt;
 
+    @LastModifiedDate
     @Column(nullable = false)
-    private Instant updatedAt;
-
-    @PrePersist
-    public void onCreate() {
-        Instant now = Instant.now();
-        createdAt = now;
-        updatedAt = now;
-        if (status == null) {
-            status = AirlineStatus.ACTIVE;
-        }
-    }
-
-    @PreUpdate
-    public void onUpdate() {
-        updatedAt = Instant.now();
-    }
+    Instant updatedAt;
 }

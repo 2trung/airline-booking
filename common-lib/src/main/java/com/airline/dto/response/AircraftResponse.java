@@ -5,44 +5,46 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
 import java.time.LocalDate;
 
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class AircraftResponse {
+    Long id;
+    String code;
+    String model;
+    String manufacturer;
+    Integer seatingCapacity;
+    Integer economySeats;
+    Integer premiumEconomySeats;
+    Integer businessSeats;
+    Integer firstClassSeats;
+    Integer rangeKm;
+    Integer cruisingSpeedKmh;
+    Integer maxAltitudeFt;
+    Integer yearOfManufacture;
+    LocalDate registrationDate;
+    LocalDate nextMaintenanceDate;
+    AircraftStatus status;
+    Boolean isAvailable;
 
-    private Long id;
-    private String model;
-    private String code;
-    private String manufacturer;
-    private Integer seatingCapacity;
-    private Integer economySeats;
-    private Integer premiumEconomySeats;
-    private Integer businessSeats;
-    private Integer firstClassSeats;
-    private Integer rangeInKm;
-    private Integer cruiseSpeed;
-    private Integer yearOfManufacture;
-    private LocalDate registrationDate;
-    private LocalDate nextMaintenanceDate;
-    private AircraftStatus status;
-    private Long airlineId;
-    private String airlineName;
-    private String airlineIataCode;
+    Long airlineId;
+    String airlineName;
+    String airlineIataCode;
 
-    private Long currentAirportId;
-    private Long currentAirportCityId;
-    private String currentAirportCityName;
-    private String currentAirportCityCode;
+    Long currentAirportId;
+    Long currentAirportCity;
+    String currentAirportCode;
+    String currentAirportName;
 
-    private Integer totalSeats;
-    private Boolean requiresMaintenance;
-    private Boolean isOperational;
+    Integer totalSeats;
+    Boolean requiresMaintenance;
+    Boolean isOperational;
 
-    private Instant createdAt;
-    private Instant updatedAt;
+    Instant createdAt;
+    Instant updatedAt;
 }
