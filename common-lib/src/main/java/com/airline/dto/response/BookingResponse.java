@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -31,12 +31,12 @@ public class BookingResponse {
     String flightName;
     String departureAirport;
     String arrivalAirport;
-    LocalDateTime departureTime;
-    LocalDateTime arrivalTime;
+    Instant departureTime;
+    Instant arrivalTime;
 
     BookingStatus status;
-    LocalDateTime bookingDate;
-    LocalDateTime lastModified;
+    Instant bookingDate;
+    Instant lastModified;
 
     List<PassengerResponse> passengers;
     List<SeatInstanceResponse> seatInstances;

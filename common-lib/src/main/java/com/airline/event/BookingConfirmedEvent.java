@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -19,8 +19,8 @@ public class BookingConfirmedEvent {
     // ── Booking ──────────────────────────────────────────────────────────────
     Long bookingId;
     String bookingReference;
-    LocalDateTime confirmedAt;
-    LocalDateTime bookingDate;
+    Instant confirmedAt;
+    Instant bookingDate;
     String cabinClass;           // "ECONOMY", "BUSINESS", etc.
     String tripType;             // "ONE_WAY", "ROUND_TRIP"
     boolean flexibleTicket;
@@ -48,14 +48,14 @@ public class BookingConfirmedEvent {
     String departureCountry;
     String departureTerminal;
     String departureGate;
-    LocalDateTime departureDateTime;
+    Instant departureDateTime;
 
     // Arrival
     String arrivalAirportCode;
     String arrivalAirportName;
     String arrivalCity;
     String arrivalCountry;
-    LocalDateTime arrivalDateTime;
+    Instant arrivalDateTime;
     String flightDuration;
 
     // ── Payment ──────────────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ public class BookingConfirmedEvent {
     String transactionId;
     String providerPaymentId;
     String paymentGateway;
-    LocalDateTime paidAt;
+    Instant paidAt;
 
     // ── Fare Breakdown ────────────────────────────────────────────────────────
     String fareName;

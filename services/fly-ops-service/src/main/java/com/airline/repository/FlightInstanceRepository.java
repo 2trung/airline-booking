@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -29,8 +29,8 @@ public interface FlightInstanceRepository extends JpaRepository<FlightInstance, 
             @Param("departureAirportId") Long departureAirportId,
             @Param("arrivalAirportId") Long arrivalAirportId,
             @Param("flightId") Long flightId,
-            @Param("dayStart") LocalDateTime dayStart,
-            @Param("dayEnd") LocalDateTime dayEnd,
+            @Param("dayStart") Instant dayStart,
+            @Param("dayEnd") Instant dayEnd,
             Pageable pageable);
 
     Page<FlightInstance> findByStatus(FlightStatus status, Pageable pageable);
@@ -39,15 +39,15 @@ public interface FlightInstanceRepository extends JpaRepository<FlightInstance, 
     List<FlightInstance> searchFlights(
             @Param("depId") Long departureAirportId,
             @Param("arrId") Long arrivalAirportId,
-            @Param("fromDate") LocalDateTime fromDate,
-            @Param("toDate") LocalDateTime toDate);
+            @Param("fromDate") Instant fromDate,
+            @Param("toDate") Instant toDate);
 
     @Query("SELECT fi FROM FlightInstance fi WHERE fi.departureAirportId = :depId AND fi.arrivalAirportId = :arrId AND fi.departureDateTime >= :fromDate AND fi.departureDateTime <= :toDate")
     Page<FlightInstance> searchFlightsPaged(
             @Param("depId") Long departureAirportId,
             @Param("arrId") Long arrivalAirportId,
-            @Param("fromDate") LocalDateTime fromDate,
-            @Param("toDate") LocalDateTime toDate,
+            @Param("fromDate") Instant fromDate,
+            @Param("toDate") Instant toDate,
             Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

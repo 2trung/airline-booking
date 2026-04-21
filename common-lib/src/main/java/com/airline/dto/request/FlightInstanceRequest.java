@@ -10,7 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
@@ -31,10 +31,10 @@ public class FlightInstanceRequest {
     Long arrivalAirportId;
 
     @NotNull(message = "Departure date-time is required")
-    LocalDateTime departureDateTime;
+    Instant departureDateTime;
 
     @NotNull(message = "Arrival date-time is required")
-    LocalDateTime arrivalDateTime;
+    Instant arrivalDateTime;
 
     @NotNull(message = "Total seats is required")
     @Positive

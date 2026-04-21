@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +39,7 @@ public class PaymentEventProducer {
                 .amount(payment.getAmount())
                 .transactionId(payment.getTransactionId())
                 .failureReason(payment.getFailureReason())
-                .failedAt(LocalDateTime.now())
+                .failedAt(Instant.now())
                 .build();
 
         kafkaTemplate.send("payment.failed", event);

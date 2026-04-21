@@ -5,23 +5,40 @@ import com.airline.dto.response.PassengerResponse;
 import com.airline.entity.Passenger;
 
 public class PassengerMapper {
-    public static Passenger toEntity(PassengerRequest passengerRequest) {
-        return Passenger
-                .builder()
-                .firstName(passengerRequest.getFirstName())
-                .lastName(passengerRequest.getLastName())
-                .dateOfBirth(passengerRequest.getDateOfBirth())
-                .email(passengerRequest.getEmail())
-                .phone(passengerRequest.getPhone())
-                .gender(passengerRequest.getGender())
-                .nationality(passengerRequest.getNationality())
+    public static Passenger toEntity(PassengerRequest request) {
+        return Passenger.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(request.getEmail())
+                .phone(request.getPhone())
+                .dateOfBirth(request.getDateOfBirth())
+                .gender(request.getGender())
+                .passportNumber(request.getPassportNumber())
+                .nationality(request.getNationality())
+                .frequentFlyerNumber(request.getFrequentFlyerNumber())
+                .requiresWheelchairAssistance(request.getRequiresWheelchairAssistance())
+                .dietaryPreferences(request.getDietaryPreferences())
+                .medicalConditions(request.getMedicalConditions())
                 .build();
     }
 
+    public static void updateEntityFromRequest(PassengerRequest request, Passenger passenger) {
+        passenger.setFirstName(request.getFirstName());
+        passenger.setLastName(request.getLastName());
+        passenger.setEmail(request.getEmail());
+        passenger.setPhone(request.getPhone());
+        passenger.setDateOfBirth(request.getDateOfBirth());
+        passenger.setGender(request.getGender());
+        passenger.setPassportNumber(request.getPassportNumber());
+        passenger.setNationality(request.getNationality());
+        passenger.setFrequentFlyerNumber(request.getFrequentFlyerNumber());
+        passenger.setRequiresWheelchairAssistance(request.getRequiresWheelchairAssistance());
+        passenger.setDietaryPreferences(request.getDietaryPreferences());
+        passenger.setMedicalConditions(request.getMedicalConditions());
+    }
 
     public static PassengerResponse toResponse(Passenger passenger) {
-        return PassengerResponse
-                .builder()
+        return PassengerResponse.builder()
                 .id(passenger.getId())
                 .firstName(passenger.getFirstName())
                 .lastName(passenger.getLastName())
@@ -29,8 +46,13 @@ public class PassengerMapper {
                 .phone(passenger.getPhone())
                 .dateOfBirth(passenger.getDateOfBirth())
                 .gender(passenger.getGender())
+                .passportNumber(passenger.getPassportNumber())
                 .nationality(passenger.getNationality())
+                .frequentFlyerNumber(passenger.getFrequentFlyerNumber())
                 .primaryUserId(passenger.getPrimaryUserId())
+                .requiresWheelchairAssistance(passenger.getRequiresWheelchairAssistance())
+                .dietaryPreferences(passenger.getDietaryPreferences())
+                .medicalConditions(passenger.getMedicalConditions())
                 .isActive(passenger.getIsActive())
                 .age(passenger.getAge())
                 .isAdult(passenger.isAdult())

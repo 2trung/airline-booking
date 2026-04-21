@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -20,5 +20,5 @@ public class PaymentFailedEvent {
     Double amount;
     String transactionId;
     String failureReason;
-    LocalDateTime failedAt;
+    Instant failedAt;
 }

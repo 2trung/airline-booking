@@ -3,6 +3,7 @@ package com.airline.entity;
 import com.airline.embeddable.ContactInfo;
 import com.airline.enums.BookingStatus;
 import com.airline.enums.CabinClassType;
+import com.airline.enums.TripType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -43,6 +44,9 @@ public class Booking {
 
     @Enumerated(EnumType.STRING)
     CabinClassType cabinClass;
+
+    @Enumerated(EnumType.STRING)
+    TripType tripType;
 
     @Column(nullable = false)
     Long fareId;

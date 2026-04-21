@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
@@ -33,10 +33,10 @@ public class PaymentDTO {
     String description;
     String failureReason;
     Integer retryCount;
-    LocalDateTime initiatedAt;
-    LocalDateTime completedAt;
+    Instant initiatedAt;
+    Instant completedAt;
     Boolean notificationSent;
     Boolean active;
-    LocalDateTime createdAt;
-    LocalDateTime updatedAt;
+    Instant createdAt;
+    Instant updatedAt;
 }

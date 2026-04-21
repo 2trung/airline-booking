@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -23,8 +22,8 @@ public class FlightResponse {
     AircraftResponse aircraft;
     AirportResponse departureAirport;
     AirportResponse arrivalAirport;
-    LocalDateTime departureTime;
-    LocalDateTime arrivalTime;
+    Instant departureTime;
+    Instant arrivalTime;
     FlightStatus status;
     Double lowestPrice;
     Integer totalAvailableSeats;

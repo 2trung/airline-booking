@@ -21,9 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -73,10 +71,13 @@ public class FlightScheduleServiceImpl implements FlightScheduleService {
 
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
             if (operatingDays.contains(date.getDayOfWeek())) {
-                flightInstanceRequest.setDepartureDateTime(
-                        LocalDateTime.of(date, schedule.getDepartureTime()));
-                flightInstanceRequest.setArrivalDateTime(
-                        LocalDateTime.of(date, schedule.getArrivalTime()));
+                LocalDateTime departDateTime = LocalDateTime.of(date, schedule.getDepartureTime());
+                LocalDateTime arriveDateTime = LocalDateTime.of(date, schedule.getArrivalTime());
+                ZoneId zone = ZoneId.systemDefault();
+                Instant departInstant = departDateTime.atZone(zone).toInstant();
+                Instant arriveInstant = arriveDateTime.atZone(zone).toInstant();
+                flightInstanceRequest.setDepartureDateTime(departInstant);
+                flightInstanceRequest.setArrivalDateTime(arriveInstant);
                 System.out.println("flightInstanceRequest: " + flightInstanceRequest.getScheduleId());
                 flightInstanceService.createFlightInstanceWithCabins(
                         userId, flightInstanceRequest);

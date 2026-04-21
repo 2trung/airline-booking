@@ -28,7 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,8 +113,8 @@ public class FlightInstanceServiceImpl implements FlightInstanceService {
                                                        LocalDate onDate,
                                                        Pageable pageable) {
         Long airlineId = getAirlineForUser(userId);
-        LocalDateTime start = onDate != null ? onDate.atStartOfDay() : null;
-        LocalDateTime end   = onDate != null ? onDate.plusDays(1).atStartOfDay() : null;
+        Instant start = onDate != null ? Instant.from(onDate.atStartOfDay()) : null;
+        Instant end   = onDate != null ? Instant.from(onDate.plusDays(1).atStartOfDay()) : null;
 
         return flightInstanceRepository.findByAirlineIdWithFilters(
                 airlineId, departureAirportId, arrivalAirportId, flightId, start, end, pageable

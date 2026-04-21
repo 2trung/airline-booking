@@ -5,6 +5,10 @@ import com.airline.entity.Ticket;
 
 public class TicketMapper {
     public static TicketResponse toResponse(Ticket ticket) {
+        if (ticket == null) {
+            return null;
+        }
+
         return TicketResponse.builder()
                 .id(ticket.getId())
                 .ticketNumber(ticket.getTicketNumber())
@@ -16,8 +20,6 @@ public class TicketMapper {
                 .passengerFirstName(ticket.getPassenger() != null ? ticket.getPassenger().getFirstName() : null)
                 .passengerLastName(ticket.getPassenger() != null ? ticket.getPassenger().getLastName() : null)
                 .passengerEmail(ticket.getPassenger() != null ? ticket.getPassenger().getEmail() : null)
-//                .paymentId(ticket.getPayment() != null ? ticket.getPayment().getId() : null)
-//                .paymentAmount(ticket.getPayment() != null ? ticket.getPayment().getAmount() : null)
                 .build();
     }
 }

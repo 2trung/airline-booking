@@ -9,6 +9,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -84,7 +85,7 @@ public class FlightInstanceSpecification {
             predicates.add(root.get("status").in(EXCLUDED_STATUSES).not());
 
             // 3. Flight must still be in the future
-            predicates.add(cb.greaterThan(root.get("departureDateTime"), LocalDateTime.now()));
+            predicates.add(cb.greaterThan(root.get("departureDateTime"), Instant.now()));
 
             // 4. Origin airport
             predicates.add(cb.equal(root.get("departureAirportId"), request.getDepartureAirportId()));
