@@ -1,0 +1,23 @@
+# Shared/default configuration for all services
+server:
+  servlet:
+    context-path: /api
+
+spring:
+  datasource:
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+

@@ -1,0 +1,5 @@
+server:
+  port: 5000
+
+# Gateway doesn't use servlet container, but just in case
+spring:

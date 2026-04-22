@@ -6,20 +6,7 @@ server:
 spring:
   application:
     name: booking-service
+  config:
+    import: optional:configserver:http://localhost:8888
 
-  datasource:
-    url: jdbc:mysql://localhost:3306/airline_booking_db
-    username: root
-    password: root
 
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-
-eureka:
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    prefer-ip-address: true

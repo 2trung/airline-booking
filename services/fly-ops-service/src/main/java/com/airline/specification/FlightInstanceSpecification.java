@@ -10,8 +10,8 @@ import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -25,7 +25,7 @@ import java.util.Set;
  *   <li>Status not in {CANCELLED, COMPLETED, DIVERTED}</li>
  *   <li>departureDateTime strictly in the future</li>
  *   <li>Origin / destination airport IDs</li>
- *   <li>Departure date range (startOfDay … endOfDay)</li>
+ *   <li>Departure date range (startOfDay … endOfDay) in user's timezone</li>
  *   <li>Total available seats &ge; requested passengers (general guard)</li>
  *   <li>Airline IDs (pre-resolved from IATA codes / alliance in the service layer)</li>
  *   <li>Departure / arrival time-range buckets (MORNING, AFTERNOON, EVENING, NIGHT)</li>
@@ -95,10 +95,20 @@ public class FlightInstanceSpecification {
 
             // ── Optional DB-level filters ────────────────────────────────────
 
-            // 6. Departure date: entire calendar day (startOfDay … endOfDay inclusive)
+            // 6. Departure date: entire calendar day in user's timezone (startOfDay … endOfDay inclusive)
             if (request.getDepartureDate() != null) {
-                LocalDateTime startOfDay = request.getDepartureDate().atStartOfDay();
-                LocalDateTime endOfDay   = request.getDepartureDate().atTime(LocalTime.MAX);
+                // Use user's timezone if provided, otherwise default to UTC
+                ZoneId zone = resolveZoneId(request.getTimezone());
+                
+                // Convert user's local date to UTC Instants for DB comparison
+                Instant startOfDay = request.getDepartureDate()
+                        .atStartOfDay(zone)
+                        .toInstant();
+                Instant endOfDay = request.getDepartureDate()
+                        .atTime(LocalTime.MAX)
+                        .atZone(zone)
+                        .toInstant();
+                
                 predicates.add(cb.between(root.get("departureDateTime"), startOfDay, endOfDay));
             }
 
@@ -116,14 +126,16 @@ public class FlightInstanceSpecification {
 
             // 9. Departure time-range bucket
             if (isFilterableTimeRange(request.getDepartureTimeRange())) {
+                ZoneId userZone = resolveZoneId(request.getTimezone());
                 applyTimeRangePredicate(predicates, root, cb,
-                        "departureDateTime", request.getDepartureTimeRange());
+                        "departureDateTime", request.getDepartureTimeRange(), userZone);
             }
 
             // 10. Arrival time-range bucket
             if (isFilterableTimeRange(request.getArrivalTimeRange())) {
+                ZoneId userZone = resolveZoneId(request.getTimezone());
                 applyTimeRangePredicate(predicates, root, cb,
-                        "arrivalDateTime", request.getArrivalTimeRange());
+                        "arrivalDateTime", request.getArrivalTimeRange(), userZone);
             }
 
             // 11. Maximum flight duration in minutes (MySQL TIMESTAMPDIFF)
@@ -144,13 +156,32 @@ public class FlightInstanceSpecification {
     }
 
     // ── Private helpers ──────────────────────────────────────────────────────
+    
+    /**
+     * Resolves the ZoneId from the timezone string.
+     * Falls back to UTC if the timezone is null, blank, or invalid.
+     *
+     * @param timezone the timezone string (e.g., "America/New_York", "Europe/London")
+     * @return the resolved ZoneId
+     */
+    private static ZoneId resolveZoneId(String timezone) {
+        if (timezone == null || timezone.isBlank()) {
+            return ZoneId.of("UTC");
+        }
+        try {
+            return ZoneId.of(timezone);
+        } catch (Exception e) {
+            // Invalid timezone string, fallback to UTC
+            return ZoneId.of("UTC");
+        }
+    }
 
     private static boolean isFilterableTimeRange(String range) {
         return range != null && !range.isBlank() && !range.equalsIgnoreCase("any");
     }
 
     /**
-     * Restricts the hour-of-day of a datetime column to a named bucket.
+     * Restricts the hour-of-day of a datetime column to a named bucket in the user's timezone.
      *
      * <pre>
      * morning   →  06:00 – 11:59
@@ -158,15 +189,45 @@ public class FlightInstanceSpecification {
      * evening   →  18:00 – 20:59
      * night     →  21:00 – 05:59
      * </pre>
+     *
+     * @param predicates     the list of predicates to add to
+     * @param root           the root entity
+     * @param cb             the criteria builder
+     * @param dateTimeField  the datetime field name (departureDateTime or arrivalDateTime)
+     * @param timeRange      the time range bucket (morning, afternoon, evening, night)
+     * @param userZone       the user's timezone for hour extraction
      */
     private static void applyTimeRangePredicate(
             List<Predicate> predicates,
             Root<FlightInstance> root,
             CriteriaBuilder cb,
             String dateTimeField,
-            String timeRange) {
+            String timeRange,
+            ZoneId userZone) {
 
-        Expression<Integer> hour = cb.function("HOUR", Integer.class, root.get(dateTimeField));
+        // Extract hour in user's timezone
+        // For MySQL: HOUR(CONVERT_TZ(datetime, '+00:00', userZoneOffset))
+        // The datetime in DB is stored as UTC, so we convert from UTC to user's timezone
+        Expression<Integer> hour;
+        
+        if (userZone.equals(ZoneId.of("UTC"))) {
+            // No conversion needed for UTC
+            hour = cb.function("HOUR", Integer.class, root.get(dateTimeField));
+        } else {
+            // Get timezone offset string (e.g., "+05:30", "-08:00")
+            String targetOffset = getTimezoneOffset(userZone);
+            
+            // CONVERT_TZ(datetime, fromTZ, toTZ)
+            Expression<Object> convertedDateTime = cb.function(
+                    "CONVERT_TZ",
+                    Object.class,
+                    root.get(dateTimeField),
+                    cb.literal("+00:00"),  // From UTC
+                    cb.literal(targetOffset)  // To user's timezone
+            );
+            
+            hour = cb.function("HOUR", Integer.class, convertedDateTime);
+        }
 
         switch (timeRange.toLowerCase()) {
             case "morning"   -> predicates.add(cb.between(hour, 6,  11));
@@ -177,5 +238,22 @@ public class FlightInstanceSpecification {
                     cb.lessThanOrEqualTo(hour, 5)));
             default          -> { /* unknown bucket → no-op */ }
         }
+    }
+    
+    /**
+     * Gets the timezone offset string for MySQL CONVERT_TZ function.
+     * 
+     * @param zoneId the zone ID
+     * @return offset string in format "+HH:MM" or "-HH:MM"
+     */
+    private static String getTimezoneOffset(ZoneId zoneId) {
+        // Get current offset (considering DST)
+        Instant now = Instant.now();
+        int totalSeconds = zoneId.getRules().getOffset(now).getTotalSeconds();
+        
+        int hours = totalSeconds / 3600;
+        int minutes = Math.abs((totalSeconds % 3600) / 60);
+        
+        return String.format("%+03d:%02d", hours, minutes);
     }
 }

@@ -4,11 +4,7 @@ server:
 spring:
   application:
     name: api-gateway
+  config:
+    import: optional:configserver:http://localhost:8888
 
 
-eureka:
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    prefer-ip-address: true

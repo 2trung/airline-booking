@@ -28,6 +28,9 @@ public class FlightSearchRequest {
 
     @NotNull(message = "Cabin class is required")
     CabinClassType cabinClass;
+    
+    // User's timezone for date filtering (defaults to UTC if not provided)
+    String timezone; // e.g., "America/New_York", "Europe/London", "Asia/Tokyo"
 
     // Filter Parameters
     List<Long> airlines; // Filter by airline ids

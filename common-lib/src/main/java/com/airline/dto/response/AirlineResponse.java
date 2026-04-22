@@ -33,9 +33,9 @@ public class AirlineResponse {
     Long headquartersCityId;
 //    String headquartersCityName;
 //
-//    String supportEmail;
-//    String supportPhone;
-//    String supportHours;
+    String supportEmail;
+    String supportPhone;
+    String supportHours;
 
     Instant createdAt;
     Instant updatedAt;

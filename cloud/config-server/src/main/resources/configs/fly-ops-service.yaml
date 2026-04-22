@@ -1,0 +1,9 @@
+server:
+  port: 8004
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/airline_fly_ops_db
+  kafka:
+    bootstrap-servers: localhost:9092
+
