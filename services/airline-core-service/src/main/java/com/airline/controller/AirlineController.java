@@ -28,7 +28,12 @@ public class AirlineController {
         return ResponseEntity.ok(airlineService.createAirline(request, userId));
     }
 
-
+    @PostMapping("/bulk")
+    public ResponseEntity<List<AirlineResponse>> createAirlineBulk(
+            @Valid @RequestBody List<AirlineRequest> request,
+            @RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(airlineService.createAirlineBulk(request, userId));
+    }
 
     @GetMapping("/admin")
     public ResponseEntity<AirlineResponse> getAirlineByOwner(

@@ -26,6 +26,13 @@ public class AircraftController {
         return ResponseEntity.ok(aircraftService.createAircraft(request, userId));
     }
 
+    @PostMapping("/bulk")
+    public ResponseEntity<List<AircraftResponse>> createAircraftBulk(
+            @RequestBody List<AircraftRequest> requests,
+            @RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(aircraftService.createAircraftBulk(requests, userId));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<AircraftResponse> getAircraftById(@PathVariable Long id)
             throws ResourceNotFoundException {

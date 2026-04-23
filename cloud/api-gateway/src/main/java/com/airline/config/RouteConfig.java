@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.function.RequestPredicates;
 import org.springframework.web.servlet.function.RouterFunction;
-import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
@@ -31,7 +30,7 @@ public class RouteConfig {
     @Bean
     public RouterFunction<ServerResponse> authRoutes() {
         return GatewayRouterFunctions.route("auth-routes")
-                .route(RequestPredicates.path("/auth/**"), HandlerFunctions.http())
+                .route(RequestPredicates.path("/api/auth/**"), HandlerFunctions.http())
                 .filter(LoadBalancerFilterFunctions.lb("user-service"))
                 .build();
     }
@@ -45,8 +44,8 @@ public class RouteConfig {
                 .route(RequestPredicates.POST("/api/cities/**"), HandlerFunctions.http())
                 .route(RequestPredicates.POST("/api/airports/**"), HandlerFunctions.http())
                 .filter(LoadBalancerFilterFunctions.lb("location-service"))
-//                .before(this::jwtAuthFilter)
-//                .before(request -> requireRole(request, "ROLE_SYSTEM_ADMIN"))
+                .before(this::jwtAuthFilter)
+                .before(request -> requireRole(request, "ROLE_SYSTEM_ADMIN"))
                 .build();
     }
 
@@ -56,8 +55,8 @@ public class RouteConfig {
         return GatewayRouterFunctions.route("admin-airline-core-routes")
                 .route(RequestPredicates.GET("/api/airlines"), HandlerFunctions.http())
                 .filter(LoadBalancerFilterFunctions.lb("airline-core-service"))
-//                .before(this::jwtAuthFilter)
-//                .before(request -> requireRole(request, "ROLE_SYSTEM_ADMIN"))
+                .before(this::jwtAuthFilter)
+                .before(request -> requireRole(request, "ROLE_SYSTEM_ADMIN"))
                 .build();
     }
 
@@ -68,7 +67,7 @@ public class RouteConfig {
         return GatewayRouterFunctions.route("user-service-routes")
                 .route(RequestPredicates.path("/api/users/**"), HandlerFunctions.http())
                 .filter(LoadBalancerFilterFunctions.lb("user-service"))
-//                .before(this::jwtAuthFilter)
+                .before(this::jwtAuthFilter)
                 .build();
     }
 
@@ -79,7 +78,7 @@ public class RouteConfig {
                 .route(RequestPredicates.path("/api/airlines/**"), HandlerFunctions.http())
                 .route(RequestPredicates.path("/api/aircrafts/**"), HandlerFunctions.http())
                 .filter(LoadBalancerFilterFunctions.lb("airline-core-service"))
-//                .before(this::jwtAuthFilter)
+                .before(this::jwtAuthFilter)
                 .build();
     }
 
@@ -92,7 +91,7 @@ public class RouteConfig {
                 .route(RequestPredicates.path("/api/seat-instances/**"), HandlerFunctions.http())
                 .route(RequestPredicates.path("/api/flight-instance-cabins/**"), HandlerFunctions.http())
                 .filter(LoadBalancerFilterFunctions.lb("seat-service"))
-//                .before(this::jwtAuthFilter)
+                .before(this::jwtAuthFilter)
                 .build();
     }
 
@@ -103,7 +102,7 @@ public class RouteConfig {
                 .route(RequestPredicates.path("/api/flight-instances/**"), HandlerFunctions.http())
                 .route(RequestPredicates.path("/api/flight-schedules/**"), HandlerFunctions.http())
                 .filter(LoadBalancerFilterFunctions.lb("flight-ops-service"))
-//                .before(this::jwtAuthFilter)
+                .before(this::jwtAuthFilter)
                 .build();
     }
 
@@ -127,7 +126,7 @@ public class RouteConfig {
                 .route(RequestPredicates.path("/api/flight-meals/**"), HandlerFunctions.http())
                 .route(RequestPredicates.path("/api/flight-cabin-ancillaries/**"), HandlerFunctions.http())
                 .filter(LoadBalancerFilterFunctions.lb("ancillary-service"))
-//                .before(this::jwtAuthFilter)
+                .before(this::jwtAuthFilter)
                 .build();
     }
 
@@ -138,7 +137,7 @@ public class RouteConfig {
                 .route(RequestPredicates.path("/api/cities/**"), HandlerFunctions.http())
                 .route(RequestPredicates.path("/api/airports/**"), HandlerFunctions.http())
                 .filter(LoadBalancerFilterFunctions.lb("location-service"))
-//                .before(this::jwtAuthFilter)
+                .before(this::jwtAuthFilter)
                 .build();
     }
 
@@ -147,7 +146,7 @@ public class RouteConfig {
         return GatewayRouterFunctions.route("booking-service-routes")
                 .route(RequestPredicates.path("/api/bookings/**"), HandlerFunctions.http())
                 .filter(LoadBalancerFilterFunctions.lb("booking-service"))
-//                .before(this::jwtAuthFilter)
+                .before(this::jwtAuthFilter)
                 .build();
     }
 
@@ -156,7 +155,7 @@ public class RouteConfig {
         return GatewayRouterFunctions.route("payment-service-routes")
                 .route(RequestPredicates.path("/api/payments/**"), HandlerFunctions.http())
                 .filter(LoadBalancerFilterFunctions.lb("payment-service"))
-//                .before(this::jwtAuthFilter)
+                .before(this::jwtAuthFilter)
                 .build();
     }
 

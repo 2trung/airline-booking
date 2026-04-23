@@ -35,6 +35,17 @@ public class AirlineServiceImpl implements AirlineService {
     }
 
     @Override
+    public List<AirlineResponse> createAirlineBulk(List<AirlineRequest> requests, Long ownerId) {
+        List<Airline> airlines = requests.stream()
+                .map(req -> AirlineMapper.toEntity(req, ownerId))
+                .toList();
+        List<Airline> savedAirlines = airlineRepository.saveAll(airlines);
+        return savedAirlines.stream()
+                .map(AirlineMapper::toResponse)
+                .toList();
+    }
+
+    @Override
     @Cacheable(cacheNames = "airlinesByOwner", key = "#ownerId")
     public AirlineResponse getAirlineByOwner(Long ownerId) {
         Airline airline = airlineRepository.findByOwnerId(ownerId)

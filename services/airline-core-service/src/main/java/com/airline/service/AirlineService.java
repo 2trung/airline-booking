@@ -11,6 +11,7 @@ import java.util.List;
 
 public interface AirlineService {
     AirlineResponse createAirline(AirlineRequest request, Long ownerId);
+    List<AirlineResponse> createAirlineBulk(List<AirlineRequest> requests, Long ownerId);
     AirlineResponse getAirlineByOwner(Long ownerId);
     AirlineResponse getAirlineById(Long id);
     Page<AirlineResponse> getAllAirlines(Pageable pageable);

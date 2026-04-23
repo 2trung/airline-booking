@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 
@@ -15,6 +16,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @Builder
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Airline {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,10 +60,8 @@ public class Airline {
     Long updatedById;
 
     @CreatedDate
-    @Column(updatable = false, nullable = false)
     Instant createdAt;
 
     @LastModifiedDate
-    @Column(nullable = false)
     Instant updatedAt;
 }

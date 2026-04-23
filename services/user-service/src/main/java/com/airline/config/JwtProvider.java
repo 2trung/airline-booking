@@ -2,6 +2,7 @@ package com.airline.config;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -22,10 +23,13 @@ public class JwtProvider {
 
     @Value("${jwt.duration}")
     private Long DURATION;
-    
-    private final SecretKey secretKey = Keys.hmacShaKeyFor(
-            SECRET_KEY.getBytes()
-    );
+
+    private SecretKey secretKey;
+
+    @PostConstruct
+    public void init() {
+        this.secretKey = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+    }
 
     public String generateToken(Authentication authentication, Long userId) {
 

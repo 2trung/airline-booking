@@ -19,6 +19,8 @@ public interface AircraftService {
     AircraftResponse createAircraft(AircraftRequest request,
                                     Long ownerId);
 
+    List<AircraftResponse> createAircraftBulk(List<AircraftRequest> requests, Long ownerId);
+
     AircraftResponse updateAircraft(Long id, AircraftRequest request, Long ownerId) throws ResourceNotFoundException;
 
     void deleteAircraft(Long id) throws ResourceNotFoundException;

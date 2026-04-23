@@ -45,6 +45,28 @@ public class AircraftServiceImpl implements AircraftService {
     }
 
     @Override
+    public List<AircraftResponse> createAircraftBulk(List<AircraftRequest> requests, Long ownerId) {
+        Airline airline = airlineRepository.findByOwnerId(ownerId)
+                .orElseThrow(() -> new EntityNotFoundException("Airline not found for owner: " + ownerId));
+
+        List<Aircraft> aircrafts = requests.stream()
+                .map(req -> AircraftMapper.toEntity(req, airline))
+                .toList();
+
+        for (Aircraft aircraft : aircrafts) {
+            if (aircraftRepository.existsByCode(aircraft.getCode())) {
+                throw new IllegalArgumentException("Aircraft with code " + aircraft.getCode() + " already exists");
+            }
+            validateAircraftData(aircraft);
+        }
+
+        List<Aircraft> savedAircrafts = aircraftRepository.saveAll(aircrafts);
+        return savedAircrafts.stream()
+                .map(AircraftMapper::toResponse)
+                .toList();
+    }
+
+    @Override
     @Cacheable(cacheNames = "aircrafts", key = "#id")
     public AircraftResponse getAircraftById(Long id) throws ResourceNotFoundException {
         Aircraft aircraft = aircraftRepository.findById(id)
