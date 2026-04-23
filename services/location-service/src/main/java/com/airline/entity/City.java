@@ -19,7 +19,7 @@ import java.time.ZoneId;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class City {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
     @NotBlank(message = "City name is required")
@@ -48,11 +48,8 @@ public class City {
     @Column(length = 50)
     String timeZoneId;
 
-    @Transient
-    @JsonIgnore
-    public ZoneId getTimeZone() {
-        return timeZoneId != null ? ZoneId.of(timeZoneId) : null;
-    }
+    @Column(length = 50)
+    String timeZone;
 
     public void setTimeZone(ZoneId zoneId) {
         this.timeZoneId = zoneId != null ? zoneId.getId() : null;

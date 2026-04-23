@@ -5,6 +5,8 @@ import com.airline.dto.response.AircraftResponse;
 import com.airline.exception.ResourceNotFoundException;
 import com.airline.service.AircraftService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +38,12 @@ public class AircraftController {
         return ResponseEntity.ok(aircraftService.listAllAircraftsByOwner(userId));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<Page<AircraftResponse>> searchAircrafts(
+            @RequestParam String keyword, Pageable pageable) {
+        return ResponseEntity.ok(aircraftService.searchAircrafts(keyword, pageable));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<AircraftResponse> updateAircraft(
             @PathVariable Long id,
@@ -51,5 +59,3 @@ public class AircraftController {
         return ResponseEntity.noContent().build();
     }
 }
-
-

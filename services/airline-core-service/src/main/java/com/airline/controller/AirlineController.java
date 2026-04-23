@@ -48,6 +48,12 @@ public class AirlineController {
         return ResponseEntity.ok(airlineService.getAllAirlines(pageable));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<Page<AirlineResponse>> searchAirlines(
+            @RequestParam String keyword, Pageable pageable) {
+        return ResponseEntity.ok(airlineService.searchAirlines(keyword, pageable));
+    }
+
     @GetMapping("/dropdown")
     public ResponseEntity<List<AirlineDropdownItem>> getAirlinesForDropdown() {
         return ResponseEntity.ok(airlineService.getAirlinesForDropdown());

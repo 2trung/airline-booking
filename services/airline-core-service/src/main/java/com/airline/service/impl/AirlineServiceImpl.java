@@ -57,6 +57,11 @@ public class AirlineServiceImpl implements AirlineService {
     }
 
     @Override
+    public Page<AirlineResponse> searchAirlines(String keyword, Pageable pageable) {
+        return airlineRepository.searchByKeyword(keyword, pageable).map(AirlineMapper::toResponse);
+    }
+
+    @Override
     @Caching(evict = {
             @CacheEvict(cacheNames = "airlinesByOwner", key = "#ownerId"),
             @CacheEvict(cacheNames = "airlines", allEntries = true),
@@ -112,4 +117,3 @@ public class AirlineServiceImpl implements AirlineService {
     }
 
 }
-

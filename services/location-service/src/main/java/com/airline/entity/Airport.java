@@ -20,7 +20,7 @@ import java.time.ZoneId;
 public class Airport {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
     @Column(nullable = false, length = 3, unique = true)

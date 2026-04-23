@@ -14,7 +14,8 @@ public class CityMapper {
                 .countryCode(request.getCountryCode())
                 .countryName(request.getCountryName())
                 .regionCode(request.getRegionCode())
-                .timeZoneId(request.getTimeZoneOffset())
+                .timeZoneId(request.getTimeZoneId())
+                .timeZone(request.getTimeZone(request.getTimeZoneId()))
                 .build();
     }
 
@@ -28,6 +29,8 @@ public class CityMapper {
                 .countryCode(city.getCountryCode())
                 .countryName(city.getCountryName())
                 .regionCode(city.getRegionCode())
+                .timeZoneId(city.getTimeZoneId())
+                .timeZone(city.getTimeZone())
                 .build();
     }
 
@@ -46,6 +49,9 @@ public class CityMapper {
         }
         if (request.getRegionCode() != null) {
             city.setRegionCode(request.getRegionCode().toUpperCase().trim());
+        }
+        if (request.getTimeZoneId() != null) {
+            city.setTimeZoneId(request.getTimeZoneId().trim());
         }
         return city;
     }

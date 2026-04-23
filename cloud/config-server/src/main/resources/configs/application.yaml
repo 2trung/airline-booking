@@ -1,4 +1,3 @@
-# Shared/default configuration for all services
 server:
   servlet:
     context-path: /api
@@ -11,6 +10,9 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+jwt:
+  secret-key: supersecretkey1234567890supersecret
+  duration: 86400000
 
 eureka:
   client:

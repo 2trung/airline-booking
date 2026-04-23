@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -164,8 +165,8 @@ public class CityServiceImpl implements CityService {
             throw new IllegalArgumentException("Country code must be 2-5 uppercase letters");
         }
 
-        if (request.getTimeZoneOffset() != null && !request.getTimeZoneOffset().matches("[+-]\\d{2}:\\d{2}")) {
-            throw new IllegalArgumentException("Time zone offset must be in format ±HH:MM");
+        if (request.getTimeZoneId() != null && !ZoneId.getAvailableZoneIds().contains(request.getTimeZoneId())) {
+            throw new IllegalArgumentException("Invalid time zone ID: " + request.getTimeZoneId());
         }
     }
 }

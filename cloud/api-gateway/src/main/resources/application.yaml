@@ -1,10 +1,11 @@
 server:
   port: 5000
+  servlet:
+    context-path: /
 
 spring:
   application:
     name: api-gateway
   config:
     import: optional:configserver:http://localhost:8888
-
 

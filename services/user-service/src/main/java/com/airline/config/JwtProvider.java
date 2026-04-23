@@ -3,6 +3,7 @@ package com.airline.config;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -16,8 +17,12 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class JwtProvider {
-    public static final String SECRET_KEY = "supersecretkey1234567890supersecret";
-    public static final String TOKEN_PREFIX = "Bearer ";
+    @Value("${jwt.secret-key}")
+    private String SECRET_KEY;
+
+    @Value("${jwt.duration}")
+    private Long DURATION;
+    
     private final SecretKey secretKey = Keys.hmacShaKeyFor(
             SECRET_KEY.getBytes()
     );
@@ -28,7 +33,7 @@ public class JwtProvider {
         String roles = populateAuthorities(authorities);
         String jwt = Jwts.builder()
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 86400000))
+                .expiration(new Date(System.currentTimeMillis() + DURATION))
                 .claim("email", authentication.getName())
                 .claim("authorities", roles)
                 .claim("userId", userId)

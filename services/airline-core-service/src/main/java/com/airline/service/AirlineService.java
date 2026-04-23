@@ -14,6 +14,7 @@ public interface AirlineService {
     AirlineResponse getAirlineByOwner(Long ownerId);
     AirlineResponse getAirlineById(Long id);
     Page<AirlineResponse> getAllAirlines(Pageable pageable);
+    Page<AirlineResponse> searchAirlines(String keyword, Pageable pageable);
     AirlineResponse updateAirline(AirlineRequest request, Long ownerId);
     void deleteAirline(Long id, Long ownerId);
 

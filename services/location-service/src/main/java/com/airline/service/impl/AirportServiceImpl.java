@@ -16,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -152,5 +154,13 @@ public class AirportServiceImpl implements AirportService {
                 .map(AirportMapper::toResponse)
                 .collect(Collectors.toList());
     }
-}
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<AirportResponse> searchAirports(String keyword, Pageable pageable) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return airportRepository.findAll(pageable).map(AirportMapper::toResponse);
+        }
+        return airportRepository.searchAirports(keyword.trim(), pageable).map(AirportMapper::toResponse);
+    }
+}

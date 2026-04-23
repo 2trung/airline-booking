@@ -16,5 +16,6 @@ public class CityResponse {
     String countryCode;
     String countryName;
     String regionCode;
-    String timeZoneOffset;
+    String timeZoneId;
+    String timeZone;
 }

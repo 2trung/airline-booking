@@ -5,6 +5,9 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.Instant;
+import java.time.ZoneId;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,6 +34,14 @@ public class CityRequest {
     @Size(max = 10)
     String regionCode;
 
-    @Size(max = 10)
-    String timeZoneOffset;
+    String timeZoneId;
+
+    public String getTimeZone(String timeZoneId) {
+        try {
+            ZoneId zoneId = ZoneId.of(timeZoneId);
+            return "GMT" + zoneId.getRules().getOffset(Instant.now()).getId();
+        } catch (Exception e) {
+            return "";
+        }
+    }
 }
