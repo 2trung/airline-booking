@@ -21,7 +21,7 @@ import java.time.LocalDate;
 @EntityListeners(AuditingEntityListener.class)
 public class Aircraft {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(updatable = false, nullable = false)
     Long id;
 

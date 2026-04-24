@@ -4,4 +4,8 @@ server:
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/airline_booking_db
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: booking-service-group
 

@@ -6,6 +6,7 @@ import com.airline.entity.Booking;
 import com.airline.entity.Passenger;
 import com.airline.entity.Ticket;
 import com.airline.enums.CabinClassType;
+import com.airline.enums.PaymentGateway;
 import com.airline.event.BookingConfirmedEvent;
 import com.airline.event.PassengerNotificationData;
 import com.airline.event.PaymentCompletedEvent;
@@ -123,7 +124,7 @@ public class BookingEventProducer {
 //                .flexibleTicket(booking.isFlexibleTicket())
                 // Contact
                 .userId(booking.getUserId())
-                .userName(user != null ? user.getFullName() : "Valued Customer")
+                .userName(user != null ? user.getFullName() : "Customer")
                 .contactEmail(contactEmail)
                 .contactPhone(contactPhone)
                 // Passengers
@@ -149,10 +150,10 @@ public class BookingEventProducer {
                 .flightDuration(duration)
                 // Payment
                 .totalAmount(payment.getAmount())
-                .currency("INR")
+                .currency("USD")
                 .transactionId(payment.getTransactionId())
                 .providerPaymentId(payment.getProviderPaymentId())
-                .paymentGateway("RAZORPAY")
+                .paymentGateway(PaymentGateway.STRIPE.name())
                 .paidAt(payment.getPaidAt())
                 // Fare breakdown
                 .fareName(fareName)

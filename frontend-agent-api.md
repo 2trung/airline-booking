@@ -246,3 +246,196 @@ Checks whether a city exists by its city code.
   * `cityCode` (`String`) - The city code
 * **Response Body**: `Boolean` (true/false)
 * **Status Code**: `200 OK`
+
+---
+
+# Seat Service API Documentation
+
+> **Note on Authentication:** All requests must be routed through the API Gateway. The `X-User-Id` header is automatically resolved and appended by the API Gateway based on your authentication context (e.g., JWT token). The frontend agent **does not** need to manually include `X-User-Id` in the requests.
+
+---
+
+## 1. Cabin Class API (Base path: `/cabin-classes`)
+
+### Endpoints
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/cabin-classes/{id}` | Get cabin class by ID |
+| `GET` | `/cabin-classes/aircraft/{aircraftId}` | Get all cabin classes for a specific aircraft |
+| `GET` | `/cabin-classes/aircraft/{id}/name/{cabinClass}` | Get cabin class by aircraft ID and name |
+| `POST` | `/cabin-classes` | Create a new cabin class |
+| `POST` | `/cabin-classes/create/bulk` | Create multiple cabin classes in bulk |
+| `PUT` | `/cabin-classes/{id}` | Update an existing cabin class |
+| `DELETE` | `/cabin-classes/{id}` | Delete a cabin class |
+
+### Request Entity: `CabinClassRequest`
+```json
+{
+  "name": "string (Required)",
+  "code": "string (Required, 1-5 chars)",
+  "description": "string (Max 500 chars)",
+  "aircraftId": "number (Required)",
+  "displayOrder": "number",
+  "isActive": "boolean",
+  "isBookable": "boolean",
+  "typicalSeatPitch": "number",
+  "typicalSeatWidth": "number",
+  "seatType": "string"
+}
+```
+
+### Response Entity: `CabinClassResponse`
+```json
+{
+  "id": "number",
+  "name": "string",
+  "code": "string",
+  "description": "string",
+  "aircraftId": "number",
+  "displayOrder": "number",
+  "isActive": "boolean",
+  "isBookable": "boolean",
+  "typicalSeatPitch": "number",
+  "typicalSeatWidth": "number",
+  "seatType": "string",
+  "createdAt": "string (ISO-8601)",
+  "updatedAt": "string (ISO-8601)",
+  "seatMap": {
+     // See SeatMapResponse
+  }
+}
+```
+
+---
+
+## 2. Seat Map API (Base path: `/seat-maps`)
+
+### Endpoints
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/seat-maps/{id}` | Get seat map by ID |
+| `GET` | `/seat-maps/cabin-class/{cabinClassId}` | Get seat map associated with a cabin class |
+| `POST` | `/seat-maps` | Create a new seat map |
+| `POST` | `/seat-maps/create/bulk` | Create multiple seat maps |
+| `PUT` | `/seat-maps/{id}` | Update an existing seat map |
+| `DELETE` | `/seat-maps/{id}` | Delete a seat map |
+
+### Request Entity: `SeatMapRequest`
+```json
+{
+  "name": "string (Required)",
+  "totalRows": "number (Required, Positive)",
+  "leftSeatsPerRow": "number (Required, Positive)",
+  "rightSeatsPerRow": "number (Required, Positive)",
+  "cabinClassId": "number"
+}
+```
+
+### Response Entity: `SeatMapResponse`
+```json
+{
+  "id": "number",
+  "name": "string",
+  "totalRows": "number",
+  "airlineId": "number",
+  "airlineName": "string",
+  "airlineCode": "string",
+  "cabinClassId": "number",
+  "cabinClassName": "string",
+  "cabinClassCode": "string",
+  "totalSeats": "number",
+  "availableSeats": "number",
+  "occupiedSeats": "number",
+  "seats": [
+    // Array of SeatResponse items
+  ],
+  "windowSeats": "number",
+  "aisleSeats": "number",
+  "middleSeats": "number",
+  "premiumSeats": "number",
+  "emergencyExitSeats": "number",
+  "leftSeatsPerRow": "number",
+  "rightSeatsPerRow": "number"
+}
+```
+
+---
+
+## 3. Seat API (Base path: `/seats`)
+
+### Endpoints
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/seats` | Get all seats |
+| `GET` | `/seats/{id}` | Get seat details by ID |
+| `PUT` | `/seats/{id}` | Update a specific seat |
+
+### Request Entity: `SeatRequest`
+```json
+{
+  "seatNumber": "string (Required, 2-10 chars)",
+  "seatRow": "number (Required, Positive)",
+  "columnLetter": "string (Character)",
+  "seatType": "string (Enum: STANDARD, PREMIUM, etc.)",
+  "seatMapId": "number (Required)",
+  "cabinClassId": "number",
+  "isAvailable": "boolean",
+  "isBlocked": "boolean",
+  "isEmergencyExit": "boolean",
+  "isActive": "boolean",
+  "basePrice": "number",
+  "premiumSurcharge": "number",
+  "hasExtraLegroom": "boolean",
+  "hasBassinet": "boolean",
+  "isNearLavatory": "boolean",
+  "isNearGalley": "boolean",
+  "hasPowerOutlet": "boolean",
+  "hasTvScreen": "boolean",
+  "isWheelchairAccessible": "boolean",
+  "hasExtraWidth": "boolean",
+  "seatPitch": "number",
+  "seatWidth": "number",
+  "reclineAngle": "number"
+}
+```
+
+### Response Entity: `SeatResponse`
+```json
+{
+  "id": "number",
+  "seatNumber": "string",
+  "seatRow": "number",
+  "columnLetter": "string (Character)",
+  "seatType": "string",
+  "isAvailable": "boolean",
+  "isBlocked": "boolean",
+  "isEmergencyExit": "boolean",
+  "isActive": "boolean",
+  "basePrice": "number",
+  "premiumSurcharge": "number",
+  "totalPrice": "number",
+  "hasExtraLegroom": "boolean",
+  "hasBassinet": "boolean",
+  "isNearLavatory": "boolean",
+  "isNearGalley": "boolean",
+  "hasPowerOutlet": "boolean",
+  "hasTvScreen": "boolean",
+  "isWheelchairAccessible": "boolean",
+  "hasExtraWidth": "boolean",
+  "seatPitch": "number",
+  "seatWidth": "number",
+  "reclineAngle": "number",
+  "seatMapId": "number",
+  "seatMapName": "string",
+  "cabinClassId": "number",
+  "cabinClassName": "string",
+  "createdAt": "string (ISO-8601)",
+  "updatedAt": "string (ISO-8601)",
+  "createdBy": "string",
+  "updatedBy": "string",
+  "isPremiumSeat": "boolean",
+  "isBookable": "boolean",
+  "fullPosition": "string",
+  "seatCharacteristics": "string"
+}
+```
