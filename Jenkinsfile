@@ -51,7 +51,7 @@ pipeline {
             steps {
                 checkout scm
                 unstash 'deployable-jars'
-                sh '''
+                sh '''#!/bin/bash
                     set -euo pipefail
                     export DEPLOY_ROOT="${DEPLOY_ROOT}"
                     export RELEASE_NAME="build-${BUILD_NUMBER}"
