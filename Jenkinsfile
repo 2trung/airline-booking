@@ -5,7 +5,7 @@ pipeline {
         timestamps()
         disableConcurrentBuilds()
         buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20'))
-        skipDefaultCheckout(true)
+        // ❌ remove skipDefaultCheckout
     }
 
     parameters {
@@ -18,19 +18,16 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                sh 'ls -la'
             }
         }
 
         stage('Build & Test') {
-            agent {
-                docker {
-                    image 'maven:3.9.9-eclipse-temurin-17'
-                    args '-v $HOME/.m2:/root/.m2' // cache dependencies
-                }
-            }
             steps {
-                sh 'mvn -B -ntp clean verify'
+                sh '''
+                    pwd
+                    ls -la
+                    mvn -B -ntp clean verify
+                '''
                 stash name: 'deployable-jars',
                       includes: 'cloud/**/target/*.jar,services/**/target/*.jar',
                       excludes: '**/*-sources.jar,**/*-javadoc.jar,**/*.original'
