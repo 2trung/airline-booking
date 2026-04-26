@@ -8,9 +8,21 @@ pipeline {
     }
 
     parameters {
-        string(name: 'DEPLOY_AGENT_LABEL', defaultValue: 'deploy-agent', description: 'Label of the Jenkins agent attached to the deployment server')
-        string(name: 'DEPLOY_ROOT', defaultValue: '/opt/airline-booking', description: 'Root directory on the deployment server')
-        booleanParam(name: 'SKIP_DEPLOY', defaultValue: false, description: 'Build and test only; do not deploy')
+        string(
+            name: 'DEPLOY_AGENT_LABEL',
+            defaultValue: 'azure',
+            description: 'Label of the Jenkins agent attached to the deployment server'
+        )
+        string(
+            name: 'DEPLOY_ROOT',
+            defaultValue: '/opt/airline-booking',
+            description: 'Root directory on the deployment server'
+        )
+        booleanParam(
+            name: 'SKIP_DEPLOY',
+            defaultValue: false,
+            description: 'Build and test only; do not deploy'
+        )
     }
 
     stages {
@@ -22,22 +34,25 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                sh '''
-                    pwd
-                    ls -la
+                sh '''#!/bin/bash
+                    set -euo pipefail
                     mvn -B -ntp clean verify
                 '''
-                stash name: 'deployable-jars',
-                      includes: 'cloud/**/target/*.jar,services/**/target/*.jar',
-                      excludes: '**/*-sources.jar,**/*-javadoc.jar,**/*.original'
+                stash(
+                    name: 'deployable-jars',
+                    includes: 'cloud/**/target/*.jar,services/**/target/*.jar',
+                    excludes: '**/*-sources.jar,**/*-javadoc.jar,**/*.original'
+                )
             }
         }
 
         stage('Archive Artifacts') {
             steps {
-                archiveArtifacts artifacts: 'common-lib/target/*.jar,cloud/**/target/*.jar,services/**/target/*.jar',
-                                  fingerprint: true,
-                                  onlyIfSuccessful: true
+                archiveArtifacts(
+                    artifacts: 'common-lib/target/*.jar,cloud/**/target/*.jar,services/**/target/*.jar',
+                    fingerprint: true,
+                    onlyIfSuccessful: true
+                )
             }
         }
 
@@ -51,7 +66,8 @@ pipeline {
             steps {
                 checkout scm
                 unstash 'deployable-jars'
-                sh '''
+                sh '''#!/bin/bash
+                    set -euo pipefail
                     export DEPLOY_ROOT="${DEPLOY_ROOT}"
                     export RELEASE_NAME="build-${BUILD_NUMBER}"
                     ./deploy/deploy.sh
@@ -62,7 +78,10 @@ pipeline {
 
     post {
         always {
-            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
+            junit(
+                testResults: '**/target/surefire-reports/*.xml',
+                allowEmptyResults: true
+            )
         }
     }
 }
